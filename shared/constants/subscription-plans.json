@@ -1,0 +1,49 @@
+{
+  "free": {
+    "name": "Free",
+    "price": 0,
+    "currency": "USD",
+    "features": [
+      "Beginner course access",
+      "Limited videos",
+      "Community access",
+      "FAQs"
+    ]
+  },
+  "monthly": {
+    "name": "Monthly Subscription",
+    "price": 29.99,
+    "currency": "USD",
+    "features": [
+      "Intermediate & Advanced courses",
+      "Strategy library",
+      "Recorded live classes",
+      "Certificates",
+      "Full community access"
+    ]
+  },
+  "premium": {
+    "name": "Premium",
+    "price": 99.99,
+    "currency": "USD",
+    "features": [
+      "All Monthly features",
+      "Live signals",
+      "Trade explanations",
+      "Mentorship sessions",
+      "Priority support"
+    ]
+  },
+  "lifetime": {
+    "name": "Lifetime Access",
+    "price": 499.99,
+    "currency": "USD",
+    "features": [
+      "All Premium features",
+      "Lifetime access",
+      "Future updates included",
+      "Exclusive content"
+    ]
+  }
+}
+
