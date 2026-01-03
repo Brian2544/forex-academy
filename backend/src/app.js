@@ -5,6 +5,7 @@ const errorHandler = require('./middlewares/error.middleware');
 
 // Import routes
 const authRoutes = require('./routes/auth.routes');
+const paymentRoutes = require('./routes/payment.routes');
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.get('/api/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // 404 handler
 app.use((req, res) => {

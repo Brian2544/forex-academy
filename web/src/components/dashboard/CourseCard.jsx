@@ -9,43 +9,47 @@ const CourseCard = ({ course, progress }) => {
   };
 
   return (
-    <Link to={`/courses/${course.id}`} className="card hover:border-primary-500 transition group">
+    <Link to={`/courses/${course.id}`} className="card hover:border-primary-300 transition group">
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="text-xl font-semibold text-white group-hover:text-primary-500 transition mb-2">
+          <h3 className="text-xl font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-300 mb-2">
             {course.title}
           </h3>
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${levelColors[course.level]}`}>
+          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+            course.level === 'beginner' ? 'bg-secondary-100 text-secondary-700' :
+            course.level === 'intermediate' ? 'bg-primary-100 text-primary-700' :
+            'bg-primary-100 text-primary-700'
+          }`}>
             {course.level}
           </span>
         </div>
         {course.isFree && (
-          <span className="px-3 py-1 bg-primary-500/20 text-primary-400 rounded-full text-xs font-medium">
+          <span className="px-3 py-1 bg-secondary-100 text-secondary-700 rounded-full text-xs font-medium">
             Free
           </span>
         )}
       </div>
 
-      <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+      <p className="text-neutral-600 text-sm mb-4 line-clamp-2">
         {course.description}
       </p>
 
       {progress && (
         <div className="mb-4">
           <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-gray-400">Progress</span>
-            <span className="text-primary-500 font-medium">{progress.percentage}%</span>
+            <span className="text-neutral-600">Progress</span>
+            <span className="text-primary-600 font-medium">{progress.percentage}%</span>
           </div>
-          <div className="w-full bg-dark-800 rounded-full h-2">
+          <div className="w-full bg-neutral-200 rounded-full h-2">
             <div
-              className="bg-primary-500 h-2 rounded-full transition-all"
+              className="bg-gradient-to-r from-primary-500 to-secondary-500 h-2 rounded-full transition-all"
               style={{ width: `${progress.percentage}%` }}
             ></div>
           </div>
         </div>
       )}
 
-      <div className="flex items-center justify-between text-sm text-gray-500">
+      <div className="flex items-center justify-between text-sm text-neutral-500">
         <span>{course.lessons?.length || 0} lessons</span>
         {course.duration && <span>{course.duration} min</span>}
       </div>

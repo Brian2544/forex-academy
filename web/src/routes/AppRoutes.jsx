@@ -16,6 +16,22 @@ import VerifyEmail from '../pages/VerifyEmail';
 import Terms from '../pages/legal/Terms';
 import Privacy from '../pages/legal/Privacy';
 import Disclaimer from '../pages/legal/Disclaimer';
+import Trainees from '../pages/Trainees';
+import TraineeSectionDetails from '../pages/TraineeSectionDetails';
+
+// Dashboard Detail Pages
+import BeginnerCourse from '../pages/dashboard/BeginnerCourse';
+import IntermediateCourse from '../pages/dashboard/IntermediateCourse';
+import AdvancedCourse from '../pages/dashboard/AdvancedCourse';
+import MarketAnalysis from '../pages/dashboard/MarketAnalysis';
+import FAQs from '../pages/dashboard/FAQs';
+import Communication from '../pages/dashboard/Communication';
+import Blog from '../pages/dashboard/Blog';
+import Legal from '../pages/dashboard/Legal';
+import Contact from '../pages/dashboard/Contact';
+import Referral from '../pages/dashboard/Referral';
+import LiveClassesDetail from '../pages/dashboard/LiveClasses';
+import Testimonials from '../pages/dashboard/Testimonials';
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -41,6 +57,10 @@ const AppRoutes = () => {
       <Route path="/live-classes" element={<LiveClasses />} />
       <Route path="/pricing" element={<Pricing />} />
       
+      {/* Trainees Routes */}
+      <Route path="/trainees" element={<Trainees />} />
+      <Route path="/trainees/:slug" element={<TraineeSectionDetails />} />
+      
       {/* Auth Routes */}
       <Route path="/login" element={<LoginForm />} />
       <Route path="/register" element={<RegisterForm />} />
@@ -52,6 +72,102 @@ const AppRoutes = () => {
         element={
           <PrivateRoute>
             <Dashboard />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/beginner-course"
+        element={
+          <PrivateRoute>
+            <BeginnerCourse />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/intermediate-course"
+        element={
+          <PrivateRoute>
+            <IntermediateCourse />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/advanced-course"
+        element={
+          <PrivateRoute>
+            <AdvancedCourse />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/market-analysis"
+        element={
+          <PrivateRoute>
+            <MarketAnalysis />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/faqs"
+        element={
+          <PrivateRoute>
+            <FAQs />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/communication"
+        element={
+          <PrivateRoute>
+            <Communication />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/blog"
+        element={
+          <PrivateRoute>
+            <Blog />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/legal"
+        element={
+          <PrivateRoute>
+            <Legal />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/contact"
+        element={
+          <PrivateRoute>
+            <Contact />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/referral"
+        element={
+          <PrivateRoute>
+            <Referral />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/live-classes"
+        element={
+          <PrivateRoute>
+            <LiveClassesDetail />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/testimonials"
+        element={
+          <PrivateRoute>
+            <Testimonials />
           </PrivateRoute>
         }
       />

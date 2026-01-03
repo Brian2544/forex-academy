@@ -44,26 +44,26 @@ const Profile = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-dark-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-white via-primary-50/30 to-secondary-50/30 flex items-center justify-center">
         <Loader size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-dark-950">
+    <div className="min-h-screen bg-gradient-to-br from-white via-primary-50/30 to-secondary-50/30">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 pt-24 pb-12">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-4xl font-bold text-white mb-8">Profile Settings</h1>
+          <h1 className="text-4xl font-bold text-neutral-900 mb-8">Profile Settings</h1>
 
           <div className="card mb-6">
-            <h2 className="text-xl font-bold text-white mb-4">Personal Information</h2>
+            <h2 className="text-xl font-bold text-neutral-900 mb-4">Personal Information</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
                     First Name
                   </label>
                   <input
@@ -75,7 +75,7 @@ const Profile = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Last Name
                   </label>
                   <input
@@ -89,20 +89,20 @@ const Profile = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Email
                 </label>
                 <input
                   type="email"
                   value={user.email}
-                  className="input bg-dark-800/50 cursor-not-allowed"
+                  className="input bg-neutral-100 cursor-not-allowed"
                   disabled
                 />
-                <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                <p className="text-xs text-neutral-500 mt-1">Email cannot be changed</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Phone Number
                 </label>
                 <input
@@ -114,7 +114,7 @@ const Profile = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Skill Level
                 </label>
                 <select
@@ -139,21 +139,21 @@ const Profile = () => {
           </div>
 
           <div className="card">
-            <h2 className="text-xl font-bold text-white mb-4">Account Information</h2>
+            <h2 className="text-xl font-bold text-neutral-900 mb-4">Account Information</h2>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-400">Referral Code</span>
-                <span className="text-white font-mono">{user.referralCode}</span>
+                <span className="text-neutral-600">Referral Code</span>
+                <span className="text-neutral-900 font-mono">{user.referralCode}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Email Verified</span>
-                <span className={user.isEmailVerified ? 'text-green-400' : 'text-red-400'}>
+                <span className="text-neutral-600">Email Verified</span>
+                <span className={user.isEmailVerified ? 'text-secondary-600' : 'text-danger-600'}>
                   {user.isEmailVerified ? 'Yes' : 'No'}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Member Since</span>
-                <span className="text-white">
+                <span className="text-neutral-600">Member Since</span>
+                <span className="text-neutral-900">
                   {new Date(user.createdAt).toLocaleDateString()}
                 </span>
               </div>

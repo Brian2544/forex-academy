@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authService } from '../services/auth.service';
 import toast from 'react-hot-toast';
 
@@ -8,26 +8,47 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const logout = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+  }, []);
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
     
     if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
-      // Verify token is still valid
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+        
+        // Verify token is still valid in the background
       authService.getMe()
         .then(({ data }) => {
+            if (data && data.user) {
           setUser(data.user);
           localStorage.setItem('user', JSON.stringify(data.user));
+            }
         })
-        .catch(() => {
+          .catch((error) => {
+            // Only logout if token is actually invalid (401/403)
+            // Don't logout on network errors or other issues
+            if (error.response?.status === 401 || error.response?.status === 403) {
           logout();
+            }
+            // For other errors, keep the user logged in with cached data
         })
         .finally(() => setLoading(false));
+      } catch (error) {
+        // If parsing fails, clear everything
+        logout();
+        setLoading(false);
+      }
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [logout]);
 
   const login = async (email, password) => {
     try {
@@ -59,10 +80,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
+  const handleLogout = () => {
+    logout();
     toast.success('Logged out successfully');
   };
 
@@ -76,7 +95,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     register,
-    logout,
+    logout: handleLogout,
     updateUser,
     isAuthenticated: !!user
   };

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { register, login } = require('../controllers/auth.controller');
+const { register, login, getMe } = require('../controllers/auth.controller');
+const authMiddleware = require('../middlewares/auth.middleware');
 
 // GET /api/auth/register - Browser-friendly response
 router.get('/register', (req, res) => {
@@ -23,6 +24,9 @@ router.get('/login', (req, res) => {
 
 // POST /api/auth/login - Login endpoint
 router.post('/login', login);
+
+// GET /api/auth/me - Get current user (protected)
+router.get('/me', authMiddleware, getMe);
 
 module.exports = router;
 

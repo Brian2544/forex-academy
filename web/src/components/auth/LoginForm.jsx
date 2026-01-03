@@ -14,29 +14,36 @@ const LoginForm = () => {
     e.preventDefault();
     setLoading(true);
 
-    const result = await login(formData.email, formData.password);
-    
-    if (result.success) {
-      navigate('/dashboard');
+    try {
+      const result = await login(formData.email, formData.password);
+      
+      if (result.success) {
+        // Small delay to ensure state is updated before navigation
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 100);
+      } else {
+        setLoading(false);
+      }
+    } catch (error) {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-dark-950 py-12 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-primary-50/30 to-secondary-50/30 py-12 px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 gradient-gold rounded-lg flex items-center justify-center mx-auto mb-4">
-            <span className="text-dark-950 font-bold text-2xl">FX</span>
+          <div className="w-16 h-16 gradient-brand rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-500/30 hover:scale-110 transition-transform duration-300">
+            <span className="text-white font-bold text-2xl">FX</span>
           </div>
-          <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-          <p className="text-gray-400">Sign in to continue your learning journey</p>
+          <h2 className="text-3xl font-bold text-neutral-900 mb-2">Welcome Back</h2>
+          <p className="text-neutral-600">Sign in to continue your learning journey</p>
         </div>
 
         <form onSubmit={handleSubmit} className="card space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
               Email Address
             </label>
             <input
@@ -50,7 +57,7 @@ const LoginForm = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
               Password
             </label>
             <input
@@ -71,9 +78,9 @@ const LoginForm = () => {
             {loading ? <Loader size="sm" /> : 'Sign In'}
           </button>
 
-          <p className="text-center text-sm text-gray-400">
+          <p className="text-center text-sm text-neutral-600">
             Don't have an account?{' '}
-            <Link to="/register" className="text-primary-500 hover:text-primary-400 font-medium">
+            <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium link-primary">
               Sign up
             </Link>
           </p>

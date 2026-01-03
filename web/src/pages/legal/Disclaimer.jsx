@@ -3,15 +3,23 @@ import Footer from '../../components/common/Footer';
 
 const Disclaimer = () => {
   return (
-    <div className="min-h-screen bg-dark-950">
+    <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <div className="container mx-auto px-4 pt-24 pb-12 max-w-4xl">
         <h1 className="text-4xl font-bold text-white mb-8">Risk Disclaimer</h1>
         
         <div className="card space-y-6">
           <div className="p-6 bg-red-500/10 border-2 border-red-500/50 rounded-lg">
-            <h2 className="text-2xl font-bold text-red-400 mb-4">⚠️ IMPORTANT RISK WARNING</h2>
+            <h2 className="text-2xl font-bold text-red-400 mb-4 flex items-center gap-2">
+              {(() => {
+                const WarningIcon = getIcon('warning');
+                return WarningIcon ? (
+                  <WarningIcon className="w-6 h-6" />
+                ) : null;
+              })()}
+              IMPORTANT RISK WARNING
+            </h2>
             <p className="text-red-300 leading-relaxed text-lg">
               Trading foreign exchange on margin carries a high level of risk and may not be suitable 
               for all investors. The high degree of leverage can work against you as well as for you. 

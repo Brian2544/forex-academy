@@ -2,58 +2,304 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+   DESIGN TOKENS - CSS Variables
+   ============================================ */
+:root {
+  /* Brand Colors */
+  --brand-primary: #F58320;
+  --brand-primary-hover: #C46919;
+  --brand-primary-light: #FAC597;
+  --brand-primary-lighter: #FDE3CC;
+  
+  --brand-secondary: #A4CD39;
+  --brand-secondary-hover: #83A42E;
+  --brand-secondary-light: #CFE597;
+  --brand-secondary-lighter: #E2EFC1;
+  
+  /* Background Colors */
+  --bg: #FFFFFF;
+  --bg-elevated: #FAFAFA;
+  --bg-tinted: #FFFBF7;
+  --bg-tinted-secondary: #F9FBF4;
+  --card: #FFFFFF;
+  --card-hover: #FFFBF7;
+  
+  /* Border Colors */
+  --border: #E5E5E5;
+  --border-light: #F5F5F5;
+  --border-primary: rgba(245, 131, 32, 0.2);
+  --border-secondary: rgba(164, 205, 57, 0.2);
+  --border-hover: rgba(245, 131, 32, 0.4);
+  
+  /* Text Colors */
+  --text: #171717;
+  --text-muted: #525252;
+  --text-light: #737373;
+  --text-on-primary: #FFFFFF;
+  --text-on-secondary: #171717;
+  
+  /* Interactive Colors */
+  --primary: var(--brand-primary);
+  --primary-hover: var(--brand-primary-hover);
+  --primary-foreground: var(--text-on-primary);
+  
+  --secondary: var(--brand-secondary);
+  --secondary-hover: var(--brand-secondary-hover);
+  --secondary-foreground: var(--text-on-secondary);
+  
+  --accent: var(--brand-secondary);
+  --ring: var(--brand-primary);
+  --ring-offset: #FFFFFF;
+  
+  /* Semantic Colors */
+  --success: #A4CD39;
+  --success-bg: #E2EFC1;
+  --warning: #F58320;
+  --warning-bg: #FDE3CC;
+  --danger: #EF4444;
+  --danger-bg: #FEE2E2;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-glow-primary: 0 0 20px rgba(245, 131, 32, 0.3);
+  --shadow-glow-secondary: 0 0 20px rgba(164, 205, 57, 0.3);
+  
+  /* Spacing & Radius */
+  --radius: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+/* ============================================
+   BASE STYLES - Bright Light Theme
+   ============================================ */
 @layer base {
   * {
-    @apply border-dark-800;
+    @apply border-neutral-200;
   }
   
   body {
-    @apply bg-dark-950 text-gray-100 font-sans antialiased;
+    @apply bg-gradient-to-br from-white to-neutral-50 text-neutral-900 font-sans antialiased;
+    background: linear-gradient(to bottom right, var(--bg), var(--bg-tinted), var(--bg-tinted-secondary));
+    background-color: var(--bg);
+    color: var(--text);
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold;
+    @apply font-bold text-neutral-900;
+    color: var(--text);
   }
 
   html {
     scroll-behavior: smooth;
   }
+  
+  /* Links */
+  a {
+    @apply transition-colors duration-200;
+  }
+  
+  /* Focus states for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+    outline: none;
+  }
 }
 
+/* ============================================
+   COMPONENT CLASSES
+   ============================================ */
 @layer components {
+  /* Button Base */
   .btn {
-    @apply px-6 py-3 rounded-lg font-medium transition-all duration-200;
+    @apply px-6 py-3 rounded-xl font-semibold transition-all duration-300 ease-out;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+    border-radius: var(--radius);
   }
   
+  /* Primary Button - Orange */
   .btn-primary {
-    @apply bg-primary-500 text-dark-950 hover:bg-primary-400 active:scale-95 shadow-lg shadow-primary-500/50;
+    @apply bg-primary-500 text-white;
+    @apply hover:bg-primary-600 hover:shadow-lg hover:shadow-primary-500/40;
+    @apply active:scale-[0.98] active:shadow-md;
+    @apply focus:ring-primary-500;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    box-shadow: var(--shadow);
   }
   
+  .btn-primary:hover {
+    background-color: var(--primary-hover);
+    box-shadow: var(--shadow-glow-primary);
+    transform: translateY(-1px);
+  }
+  
+  /* Secondary Button - Green */
   .btn-secondary {
-    @apply bg-dark-800 text-gray-100 hover:bg-dark-700 active:scale-95;
+    @apply bg-secondary-500 text-neutral-900 font-semibold;
+    @apply hover:bg-secondary-600 hover:shadow-lg hover:shadow-secondary-500/40;
+    @apply active:scale-[0.98] active:shadow-md;
+    @apply focus:ring-secondary-500;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+    box-shadow: var(--shadow);
   }
   
+  .btn-secondary:hover {
+    background-color: var(--secondary-hover);
+    box-shadow: var(--shadow-glow-secondary);
+    transform: translateY(-1px);
+  }
+  
+  /* Outline Button */
   .btn-outline {
-    @apply border-2 border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-dark-950;
+    @apply border-2 border-primary-500 text-primary-500 bg-transparent;
+    @apply hover:bg-primary-500 hover:text-white hover:shadow-md;
+    @apply active:scale-[0.98];
+    @apply focus:ring-primary-500;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+    border-color: var(--primary);
+    color: var(--primary);
   }
   
+  .btn-outline:hover {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    transform: translateY(-1px);
+  }
+  
+  /* Card Styles */
   .card {
-    @apply bg-dark-900 rounded-xl p-6 border border-dark-800 shadow-lg;
+    @apply bg-white rounded-xl p-6 border border-neutral-200;
+    @apply hover:border-primary-300 hover:shadow-lg hover:shadow-primary-500/10;
+    @apply transition-all duration-300 ease-out;
+    background-color: var(--card);
+    border-color: var(--border);
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius-lg);
   }
   
+  .card:hover {
+    background-color: var(--card-hover);
+    border-color: var(--border-hover);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+  
+  /* Card with gradient header */
+  .card-gradient {
+    @apply bg-white rounded-xl overflow-hidden border border-neutral-200;
+    @apply hover:shadow-lg hover:shadow-primary-500/10;
+    @apply transition-all duration-300;
+    background-color: var(--card);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .card-gradient-header {
+    @apply bg-gradient-to-r from-primary-500 to-secondary-500 p-4;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  }
+  
+  /* Legacy card-dark - now bright with tint */
+  .card-dark {
+    @apply bg-gradient-to-br from-white to-neutral-50 rounded-xl p-6;
+    @apply border border-neutral-200;
+    @apply hover:border-primary-300 hover:shadow-lg hover:shadow-primary-500/10;
+    @apply transition-all duration-300;
+    background: linear-gradient(135deg, var(--card) 0%, var(--bg-elevated) 100%);
+    box-shadow: var(--shadow);
+  }
+  
+  .card-dark:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  /* Input Fields */
   .input {
-    @apply w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+    @apply w-full px-4 py-3 bg-white border border-neutral-300 rounded-lg;
+    @apply text-neutral-900 placeholder-neutral-400;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+    @apply transition-all duration-200;
+    @apply disabled:bg-neutral-100 disabled:cursor-not-allowed;
+    background-color: var(--bg);
+    border-color: var(--border);
+    color: var(--text);
   }
   
+  .input:focus {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px rgba(245, 131, 32, 0.1);
+  }
+  
+  /* Gradient Classes */
   .gradient-gold {
+    @apply bg-gradient-to-r from-secondary-400 via-secondary-500 to-secondary-600;
+    background: linear-gradient(135deg, var(--secondary-light) 0%, var(--secondary) 50%, var(--secondary-hover) 100%);
+  }
+  
+  .gradient-primary {
     @apply bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600;
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 50%, var(--primary-hover) 100%);
+  }
+  
+  .gradient-brand {
+    @apply bg-gradient-to-r from-primary-500 to-secondary-500;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   }
 
+  /* Text Gradients */
   .text-gradient {
-    @apply bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary-500 via-primary-600 to-secondary-500 bg-clip-text text-transparent;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 50%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-gradient-accent {
+    @apply bg-gradient-to-r from-secondary-400 via-secondary-500 to-secondary-600 bg-clip-text text-transparent;
+    background: linear-gradient(135deg, var(--secondary-light) 0%, var(--secondary) 50%, var(--secondary-hover) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Link Styles */
+  .link-primary {
+    @apply text-primary-500 hover:text-primary-600 hover:underline;
+    @apply transition-all duration-200;
+    color: var(--primary);
+  }
+  
+  .link-primary:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  
+  .link-secondary {
+    @apply text-secondary-500 hover:text-secondary-600 hover:underline;
+    @apply transition-all duration-200;
+    color: var(--secondary);
+  }
+  
+  .link-secondary:hover {
+    color: var(--secondary-hover);
+    text-decoration: underline;
+    text-underline-offset: 4px;
   }
 }
 
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
 @layer utilities {
   .animate-pulse-slow {
     animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -61,6 +307,24 @@
 
   .backdrop-blur-glass {
     backdrop-filter: blur(10px) saturate(180%);
-    background-color: rgba(17, 24, 39, 0.8);
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+  
+  /* Hover lift effect */
+  .hover-lift {
+    @apply transition-transform duration-300 ease-out;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-4px);
+  }
+  
+  /* Glow effects */
+  .glow-primary {
+    box-shadow: var(--shadow-glow-primary);
+  }
+  
+  .glow-secondary {
+    box-shadow: var(--shadow-glow-secondary);
   }
 }

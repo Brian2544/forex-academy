@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import Loader from '../components/common/Loader';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
+import { getIcon } from '../utils/icons';
 
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
@@ -49,9 +50,9 @@ const VerifyEmail = () => {
   }, [searchParams, navigate]);
 
   return (
-    <div className="min-h-screen bg-dark-950">
+    <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950">
       <Navbar />
-      <div className="container mx-auto px-4 py-20">
+      <div className="container mx-auto px-4 pt-24 pb-12">
         <div className="max-w-md mx-auto text-center">
           {status === 'verifying' && (
             <>
@@ -62,7 +63,12 @@ const VerifyEmail = () => {
           {status === 'success' && (
             <>
               <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-green-400 text-4xl">✓</span>
+                {(() => {
+                  const CheckIcon = getIcon('check');
+                  return CheckIcon ? (
+                    <CheckIcon className="w-10 h-10 text-green-400" />
+                  ) : null;
+                })()}
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">Email Verified!</h2>
               <p className="text-gray-400">Redirecting to your dashboard...</p>

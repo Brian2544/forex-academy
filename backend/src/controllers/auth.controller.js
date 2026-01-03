@@ -35,12 +35,14 @@ const register = async (req, res, next) => {
       data: {
         email,
         password: hashedPassword,
-        role: 'STUDENT'
+        role: 'STUDENT',
+        status: 'active'
       },
       select: {
         id: true,
         email: true,
         role: true,
+        status: true,
         createdAt: true
       }
     });
@@ -61,6 +63,7 @@ const register = async (req, res, next) => {
           id: user.id,
           email: user.email,
           role: user.role,
+          status: user.status || 'active',
           name: name || null
         },
         token,
@@ -121,7 +124,8 @@ const login = async (req, res, next) => {
         user: {
           id: user.id,
           email: user.email,
-          role: user.role
+          role: user.role,
+          status: user.status || 'active'
         },
         token
       }
@@ -131,8 +135,64 @@ const login = async (req, res, next) => {
   }
 };
 
+const getMe = async (req, res, next) => {
+  try {
+    // Get token from Authorization header
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        message: 'No token provided'
+      });
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, env.JWT_SECRET);
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired token'
+      });
+    }
+
+    // Find user
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        status: true,
+        createdAt: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
-  login
+  login,
+  getMe
 };
 
