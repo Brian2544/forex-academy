@@ -1,45 +1,56 @@
-const express = require('express');
-const cors = require('cors');
-const env = require('./config/env');
-const errorHandler = require('./middlewares/error.middleware');
+import express from 'express';
+import cors from 'cors';
+import { config } from './config/env.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { logger } from './utils/logger.js';
 
 // Import routes
-const authRoutes = require('./routes/auth.routes');
-const paymentRoutes = require('./routes/payment.routes');
+import authRoutes from './modules/auth/auth.routes.js';
+import userRoutes from './modules/users/users.routes.js';
+import studentRoutes from './modules/student/student.routes.js';
+import adminRoutes from './modules/admin/admin.routes.js';
+import paymentRoutes from './modules/payments/payments.routes.js';
+import chatRoutes from './modules/chat/chat.routes.js';
 
 const app = express();
 
 // Middleware
 app.use(cors({
-  origin: env.FRONTEND_URL,
-  credentials: true
+  origin: config.frontendUrl,
+  credentials: true,
 }));
+
+// Special handling for Paystack webhook - must be before express.json()
+// Paystack webhook needs raw body for signature verification
+app.use('/payments/webhook', express.raw({ type: 'application/json' }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({
-    ok: true,
-    status: 'healthy',
-    time: new Date().toISOString()
-  });
+app.get('/health', (req, res) => {
+  res.json({ success: true, message: 'Server is running' });
 });
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/payments', paymentRoutes);
+// Routes
+app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
+app.use('/student', studentRoutes);
+app.use('/admin', adminRoutes);
+app.use('/billing', paymentRoutes);
+app.use('/payments', paymentRoutes);
+app.use('/chat', chatRoutes);
 
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Route not found'
+    message: 'Route not found',
   });
 });
 
 // Error handler
 app.use(errorHandler);
 
-module.exports = app;
+export default app;
 

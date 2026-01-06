@@ -12,6 +12,7 @@ const RegisterForm = () => {
     confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -28,32 +29,52 @@ const RegisterForm = () => {
       return;
     }
 
+    console.log('[RegisterForm] Submit handler started');
     setLoading(true);
+    setError('');
 
-    const { confirmPassword, ...registerData } = formData;
-    const result = await register(registerData);
-    
-    if (result.success) {
-      navigate('/login');
+    try {
+      const { confirmPassword, ...registerData } = formData;
+      console.log('[RegisterForm] Calling register function');
+      const result = await register(registerData);
+      console.log('[RegisterForm] Register result:', result);
+      
+      if (!result || !result.success) {
+        const errorMsg = result?.error || 'Registration failed. Please try again.';
+        setError(errorMsg);
+        console.error('[RegisterForm] Registration failed:', errorMsg);
+      } else if (result.needsManualLogin) {
+        setError('Registration successful! Please check your email and sign in manually.');
+        console.log('[RegisterForm] Registration successful but needs manual login');
+      } else {
+        console.log('[RegisterForm] Registration successful, navigation should happen');
+        // Success - navigation happens in register function
+      }
+    } catch (error) {
+      const errorMsg = error.message || 'Registration failed. Please try again.';
+      setError(errorMsg);
+      console.error('[RegisterForm] Registration error:', error);
+      toast.error(errorMsg);
+    } finally {
+      console.log('[RegisterForm] Setting loading to false');
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-primary-50/30 to-secondary-50/30 py-12 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-900 py-12 px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 gradient-brand rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-500/30 hover:scale-110 transition-transform duration-300">
-            <span className="text-white font-bold text-2xl">FX</span>
+          <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/30 hover:scale-110 transition-transform duration-300">
+            <span className="text-slate-900 font-bold text-2xl">FX</span>
           </div>
-          <h2 className="text-3xl font-bold text-neutral-900 mb-2">Create Account</h2>
-          <p className="text-neutral-600">Start your Forex trading journey today</p>
+          <h2 className="text-3xl font-bold text-slate-100 mb-2">Create Account</h2>
+          <p className="text-slate-400">Start your Forex trading journey today</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="card space-y-6">
+        <form onSubmit={handleSubmit} className="bg-slate-800 rounded-xl p-6 border border-slate-700 space-y-6">
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
               Full Name
             </label>
             <input
@@ -67,7 +88,7 @@ const RegisterForm = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
               Email Address
             </label>
             <input
@@ -81,7 +102,7 @@ const RegisterForm = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
               Password
             </label>
             <input
@@ -95,7 +116,7 @@ const RegisterForm = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
               Confirm Password
             </label>
             <input
@@ -108,17 +129,29 @@ const RegisterForm = () => {
             />
           </div>
 
+          {error && (
+            <div className={`rounded-lg p-3 ${
+              error.includes('successful') 
+                ? 'bg-amber-500/10 border border-amber-500/50' 
+                : 'bg-red-500/10 border border-red-500/50'
+            }`}>
+              <p className={`text-sm ${
+                error.includes('successful') ? 'text-amber-400' : 'text-red-400'
+              }`}>{error}</p>
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-primary w-full"
+            className="w-full px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900 font-bold rounded-lg hover:shadow-lg hover:shadow-amber-500/40 hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50"
           >
             {loading ? <Loader size="sm" /> : 'Create Account'}
           </button>
 
-          <p className="text-center text-sm text-neutral-600">
+          <p className="text-center text-sm text-slate-400">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium link-primary">
+            <Link to="/login" className="text-amber-400 hover:text-amber-300 font-medium">
               Sign in
             </Link>
           </p>

@@ -7,31 +7,31 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Brand Primary - Orange #F58320
+        // Brand Primary - Gold/Amber (Dark Theme)
         primary: {
-          50: '#FDE3CC',   // Lightest tint
-          100: '#FAC597',  // Light tint
-          200: '#F7A762',
-          300: '#F4892D',
-          400: '#F58320',  // Base brand color
-          500: '#F58320',  // Main brand color
-          600: '#C46919',
-          700: '#934F13',
-          800: '#62350C',
-          900: '#311B06',
+          50: '#FEF3C7',
+          100: '#FDE68A',
+          200: '#FCD34D',
+          300: '#FBBF24',
+          400: '#F59E0B',
+          500: '#D4AF37',  // Main brand color - Gold
+          600: '#B8941F',
+          700: '#9A7A1A',
+          800: '#7C6015',
+          900: '#5E4610',
         },
-        // Brand Secondary - Green #A4CD39
+        // Brand Secondary - Blue (Dark Theme)
         secondary: {
-          50: '#E2EFC1',   // Lightest tint
-          100: '#CFE597',  // Light tint
-          200: '#BCD76D',
-          300: '#A9C943',
-          400: '#A4CD39',  // Base brand color
-          500: '#A4CD39',  // Main brand color
-          600: '#83A42E',
-          700: '#627B22',
-          800: '#425217',
-          900: '#21290B',
+          50: '#EFF6FF',
+          100: '#DBEAFE',
+          200: '#BFDBFE',
+          300: '#93C5FD',
+          400: '#60A5FA',
+          500: '#1E40AF',  // Main brand color - Blue
+          600: '#1E3A8A',
+          700: '#1E293B',
+          800: '#1E293B',
+          900: '#0F172A',
         },
         // Legacy accent (maps to secondary)
         accent: {

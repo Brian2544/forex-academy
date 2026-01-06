@@ -1,10 +1,8 @@
-import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
 
 const Privacy = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950">
-      <Navbar />
       
       <div className="container mx-auto px-4 pt-24 pb-12 max-w-4xl">
         <h1 className="text-4xl font-bold text-white mb-8">Privacy Policy</h1>

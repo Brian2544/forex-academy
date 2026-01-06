@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import Loader from '../components/common/Loader';
 import { paymentService } from '../services/payment.service';
@@ -61,7 +60,6 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950">
-      <Navbar />
       
       <div className="container mx-auto px-4 pt-24 pb-12">
         <div className="text-center mb-12 relative">

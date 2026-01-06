@@ -1,0 +1,229 @@
+import { useState } from 'react';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import {
+  LayoutDashboard,
+  Users,
+  UsersRound,
+  MessageSquare,
+  Video,
+  BookOpen,
+  Folder,
+  TrendingUp,
+  BarChart3,
+  DollarSign,
+  Settings,
+  Bell,
+  Search,
+  LogOut,
+  Menu,
+  X
+} from 'lucide-react';
+
+const AdminLayout = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { profile, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+  };
+
+  const menuItems = [
+    { icon: LayoutDashboard, label: 'Overview', path: '/admin/overview' },
+    { icon: Users, label: 'Students', path: '/admin/students' },
+    { icon: UsersRound, label: 'Groups', path: '/admin/groups' },
+    { icon: MessageSquare, label: 'Chat Monitor', path: '/admin/chat-monitor' },
+    { icon: Video, label: 'Live Trainings', path: '/admin/live-trainings' },
+    { icon: BookOpen, label: 'Lessons', path: '/admin/lessons' },
+    { icon: Folder, label: 'Resources', path: '/admin/resources' },
+    { icon: TrendingUp, label: 'Signals', path: '/admin/signals' },
+    { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
+    { icon: DollarSign, label: 'Finance', path: '/admin/finance' },
+    { icon: Settings, label: 'Settings', path: '/admin/settings' }
+  ];
+
+  // Show admin users only for super_admin
+  if (profile?.role === 'super_admin') {
+    menuItems.push({ icon: Users, label: 'Admin Users', path: '/admin/admin-users' });
+  }
+
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const displayName = profile?.first_name && profile?.last_name
+    ? `${profile.first_name} ${profile.last_name}`
+    : profile?.email || 'User';
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <aside
+        className={`fixed left-0 top-0 z-40 h-screen bg-white border-r border-gray-200 transition-all duration-300 ${
+          sidebarOpen ? 'w-64' : 'w-20'
+        }`}
+      >
+        <div className="flex flex-col h-full">
+          {/* Logo/Brand */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-green-500 flex items-center justify-center text-white font-bold">
+                FX
+              </div>
+              {sidebarOpen && (
+                <div>
+                  <h1 className="text-lg font-bold text-gray-900">Forex Academy</h1>
+                  <p className="text-xs text-green-600">Admin Panel</p>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-1 rounded-md hover:bg-gray-100 lg:hidden"
+            >
+              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      isActive
+                        ? 'bg-gradient-to-r from-orange-500 to-green-500 text-white'
+                        : 'text-gray-700 hover:bg-orange-50 hover:text-orange-600'
+                    }`
+                  }
+                >
+                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  {sidebarOpen && <span className="text-sm font-medium">{item.label}</span>}
+                </NavLink>
+              );
+            })}
+          </nav>
+
+          {/* User Card */}
+          <div className="p-4 border-t border-gray-200">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-orange-500 to-green-500 text-white">
+              <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center font-bold">
+                {getInitials(displayName)}
+              </div>
+              {sidebarOpen && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate">{displayName}</p>
+                  <p className="text-xs text-white/80 uppercase">{profile?.role || 'USER'}</p>
+                </div>
+              )}
+            </div>
+            {sidebarOpen && (
+              <button
+                onClick={handleLogout}
+                className="mt-2 w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className={`transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}`}>
+        {/* Top Bar */}
+        <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-4 flex-1">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 rounded-md hover:bg-gray-100 lg:hidden"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <button className="relative p-2 rounded-lg hover:bg-gray-100">
+                <Bell className="w-5 h-5 text-gray-600" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-green-500 flex items-center justify-center text-white text-sm font-bold">
+                    {getInitials(displayName)}
+                  </div>
+                  {sidebarOpen && (
+                    <div className="text-left">
+                      <p className="text-sm font-semibold text-gray-900">{displayName}</p>
+                      <p className="text-xs text-gray-500 uppercase">{profile?.role || 'USER'}</p>
+                    </div>
+                  )}
+                </button>
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                    <button
+                      onClick={() => {
+                        navigate('/admin/settings');
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Profile
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate('/admin/settings');
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Settings
+                    </button>
+                    <hr className="my-2" />
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="p-6">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default AdminLayout;
+

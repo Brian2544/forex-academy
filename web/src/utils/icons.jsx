@@ -20,7 +20,12 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   ArrowRightIcon,
-  ArrowLeftIcon
+  ArrowLeftIcon,
+  Squares2X2Icon,
+  Cog6ToothIcon,
+  CurrencyDollarIcon,
+  FolderIcon,
+  ChartPieIcon
 } from '@heroicons/react/24/outline';
 import {
   BookOpenIcon as BookOpenSolid,
@@ -77,7 +82,13 @@ export const IconMap = {
   'check': CheckCircleIcon,
   'warning': ExclamationTriangleIcon,
   'arrow-right': ArrowRightIcon,
-  'arrow-left': ArrowLeftIcon
+  'arrow-left': ArrowLeftIcon,
+  'dashboard': Squares2X2Icon,
+  'settings': Cog6ToothIcon,
+  'finance': CurrencyDollarIcon,
+  'resource': FolderIcon,
+  'stat': ChartPieIcon,
+  'group': UserGroupIcon
 };
 
 // Solid icon variants

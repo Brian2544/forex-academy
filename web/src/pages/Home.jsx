@@ -1,62 +1,75 @@
 import { Link } from 'react-router-dom';
-import Navbar from '../components/common/Navbar';
-import Footer from '../components/common/Footer';
 import { getIcon } from '../utils/icons';
 
 const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-primary-50/30 to-secondary-50/30">
-      <Navbar />
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-32">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 via-secondary-500/5 to-primary-500/10"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(245,131,32,0.08),transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(164,205,57,0.06),transparent_50%)]"></div>
+      <section className="relative overflow-hidden pt-14 pb-16 bg-gradient-to-br from-white via-primary-50/40 to-secondary-50/40">
+        {/* Decorative Background Elements */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-500/8 via-secondary-500/4 to-primary-500/8"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(245,131,32,0.12),transparent_60%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(164,205,57,0.10),transparent_60%)]"></div>
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-5xl mx-auto text-center">
             
-            
-            <h1 className="text-6xl md:text-7xl lg:text-4xl font-black text-neutral-900 mb-6 leading-tight">
-            Master the Market with Precision, <span className="text-gradient animate-pulse-slow">Remember, Smart Traders</span>
-              <br />are Trained!
+            {/* Main Hero Heading */}
+            <h1 className="text-4xl md:text-5xl lg:text-5xl font-black mt-8 mb-4 leading-tight">
+              <span className="text-neutral-900">Master the </span>
+              <span className="bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent animate-pulse">Market</span>
+              <span className="text-neutral-900"> with </span>
+              <span className="bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent animate-pulse">Precision</span>
+              <br />
+              <span className="text-neutral-900">Remember, </span>
+              <span className="bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent animate-pulse">Smart</span>
+              <span className="text-neutral-900"> </span>
+              <span className="bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent animate-pulse">Traders</span>
+              <br />
+              <span className="text-neutral-900">are </span>
+              <span className="bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent animate-pulse">Trained!</span>
             </h1>
             
+            {/* Subheading */}
+            <p className="text-lg md:text-xl text-neutral-700 mb-5 max-w-3xl mx-auto font-medium leading-relaxed">
+              Transform your trading journey with expert-led courses, live signals, and professional mentorship
+            </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
               <Link 
                 to="/register" 
-                className="group relative px-8 py-4 bg-gradient-to-r from-primary-500 via-primary-600 to-secondary-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-glow-primary-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1"
+                className="group relative px-8 py-3 bg-gradient-to-r from-primary-500 via-primary-600 to-secondary-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-glow-primary-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1"
               >
                 <span className="relative z-10">Start Learning Free</span>
                 <div className="absolute inset-0 bg-gradient-to-r from-secondary-500 via-primary-500 to-secondary-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Link>
               <Link 
                 to="/courses" 
-                className="px-8 py-4 bg-white border-2 border-secondary-500/70 text-secondary-600 font-semibold text-lg rounded-xl hover:bg-secondary-500 hover:text-white hover:border-secondary-500 hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+                className="px-8 py-3 bg-white border-2 border-secondary-500 text-secondary-600 font-semibold text-lg rounded-xl hover:bg-secondary-500 hover:text-white hover:border-secondary-500 hover:shadow-lg hover:shadow-secondary-500/30 transition-all duration-300 hover:-translate-y-1"
               >
                 Explore Courses
               </Link>
             </div>
 
             {/* Trust Indicators */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-              <div className="text-center">
-                <div className="text-3xl md:text-2xl font-bold text-gradient mb-2">10K+</div>
-                <div className="text-sm font-bold text-neutral-600">Active Professionals</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-4xl mx-auto">
+              <div className="text-center p-2.5 bg-white/60 backdrop-blur-sm rounded-xl border border-primary-100 hover:border-primary-300 hover:shadow-md transition-all duration-300">
+                <div className="text-3xl md:text-2xl font-black bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent mb-1">10K+</div>
+                <div className="text-xs md:text-sm font-semibold text-neutral-700">Active Professionals</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-2xl font-bold text-gradient-accent mb-2">500+</div>
-                <div className="text-sm font-bold text-neutral-600">5-Star Reviews</div>
+              <div className="text-center p-2.5 bg-white/60 backdrop-blur-sm rounded-xl border border-secondary-100 hover:border-secondary-300 hover:shadow-md transition-all duration-300">
+                <div className="text-3xl md:text-2xl font-black bg-gradient-to-r from-secondary-500 via-primary-500 to-secondary-500 bg-clip-text text-transparent mb-1">500+</div>
+                <div className="text-xs md:text-sm font-semibold text-neutral-700">5-Star Reviews</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-2xl font-bold text-gradient mb-2">50+</div>
-                <div className="text-sm font-bold text-neutral-600">Expert Instructors</div>
+              <div className="text-center p-2.5 bg-white/60 backdrop-blur-sm rounded-xl border border-primary-100 hover:border-primary-300 hover:shadow-md transition-all duration-300">
+                <div className="text-3xl md:text-2xl font-black bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent mb-1">50+</div>
+                <div className="text-xs md:text-sm font-semibold text-neutral-700">Expert Instructors</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-2xl font-bold text-gradient-accent mb-2">24/7</div>
-                <div className="text-sm font-bold text-neutral-600">Support</div>
+              <div className="text-center p-2.5 bg-white/60 backdrop-blur-sm rounded-xl border border-secondary-100 hover:border-secondary-300 hover:shadow-md transition-all duration-300">
+                <div className="text-3xl md:text-2xl font-black bg-gradient-to-r from-secondary-500 via-primary-500 to-secondary-500 bg-clip-text text-transparent mb-1">24/7</div>
+                <div className="text-xs md:text-sm font-semibold text-neutral-700">Support</div>
               </div>
             </div>
           </div>
@@ -310,9 +323,6 @@ const Home = () => {
         </div>
       </section>
 
-      
-
-      <Footer />
     </div>
   );
 };

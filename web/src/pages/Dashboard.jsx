@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import Loader from '../components/common/Loader';
@@ -10,9 +10,20 @@ import api from '../services/api';
 import { getIcon } from '../utils/icons';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [healthStatus, setHealthStatus] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Redirect admin users to admin dashboard (fallback check)
+  useEffect(() => {
+    if (!authLoading && user) {
+      const userRole = role || user?.role;
+      if (userRole && ['OWNER', 'SUPER_ADMIN', 'ADMIN', 'INSTRUCTOR'].includes(userRole)) {
+        navigate('/admin/dashboard', { replace: true });
+      }
+    }
+  }, [user, role, authLoading, navigate]);
 
   useEffect(() => {
     checkHealth();

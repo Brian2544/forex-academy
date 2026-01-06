@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import CourseCard from '../components/dashboard/CourseCard';
 import Loader from '../components/common/Loader';
@@ -34,7 +33,6 @@ const Courses = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-primary-50/30 to-secondary-50/30">
-      <Navbar />
       
       <div className="container mx-auto px-4 pt-24 pb-12">
         <div className="text-center mb-12 relative">

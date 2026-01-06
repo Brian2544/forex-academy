@@ -3,41 +3,41 @@
 @tailwind utilities;
 
 /* ============================================
-   DESIGN TOKENS - CSS Variables
+   DESIGN TOKENS - CSS Variables (Dark Professional Theme)
    ============================================ */
 :root {
-  /* Brand Colors */
-  --brand-primary: #F58320;
-  --brand-primary-hover: #C46919;
-  --brand-primary-light: #FAC597;
-  --brand-primary-lighter: #FDE3CC;
+  /* Brand Colors - Gold/Amber accent */
+  --brand-primary: #D4AF37;
+  --brand-primary-hover: #B8941F;
+  --brand-primary-light: #E8D08A;
+  --brand-primary-lighter: #F2E5B8;
   
-  --brand-secondary: #A4CD39;
-  --brand-secondary-hover: #83A42E;
-  --brand-secondary-light: #CFE597;
-  --brand-secondary-lighter: #E2EFC1;
+  --brand-secondary: #1E40AF;
+  --brand-secondary-hover: #1E3A8A;
+  --brand-secondary-light: #3B82F6;
+  --brand-secondary-lighter: #60A5FA;
   
-  /* Background Colors */
-  --bg: #FFFFFF;
-  --bg-elevated: #FAFAFA;
-  --bg-tinted: #FFFBF7;
-  --bg-tinted-secondary: #F9FBF4;
-  --card: #FFFFFF;
-  --card-hover: #FFFBF7;
+  /* Background Colors - Dark Theme */
+  --bg: #0F172A;
+  --bg-elevated: #1E293B;
+  --bg-tinted: #1E293B;
+  --bg-tinted-secondary: #334155;
+  --card: #1E293B;
+  --card-hover: #334155;
   
   /* Border Colors */
-  --border: #E5E5E5;
-  --border-light: #F5F5F5;
-  --border-primary: rgba(245, 131, 32, 0.2);
-  --border-secondary: rgba(164, 205, 57, 0.2);
-  --border-hover: rgba(245, 131, 32, 0.4);
+  --border: #334155;
+  --border-light: #475569;
+  --border-primary: rgba(212, 175, 55, 0.3);
+  --border-secondary: rgba(30, 64, 175, 0.3);
+  --border-hover: rgba(212, 175, 55, 0.5);
   
   /* Text Colors */
-  --text: #171717;
-  --text-muted: #525252;
-  --text-light: #737373;
-  --text-on-primary: #FFFFFF;
-  --text-on-secondary: #171717;
+  --text: #F1F5F9;
+  --text-muted: #CBD5E1;
+  --text-light: #94A3B8;
+  --text-on-primary: #0F172A;
+  --text-on-secondary: #F1F5F9;
   
   /* Interactive Colors */
   --primary: var(--brand-primary);
@@ -53,12 +53,12 @@
   --ring-offset: #FFFFFF;
   
   /* Semantic Colors */
-  --success: #A4CD39;
-  --success-bg: #E2EFC1;
-  --warning: #F58320;
-  --warning-bg: #FDE3CC;
+  --success: #10B981;
+  --success-bg: #064E3B;
+  --warning: #D4AF37;
+  --warning-bg: #78350F;
   --danger: #EF4444;
-  --danger-bg: #FEE2E2;
+  --danger-bg: #7F1D1D;
   
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -83,14 +83,15 @@
   }
   
   body {
-    @apply bg-gradient-to-br from-white to-neutral-50 text-neutral-900 font-sans antialiased;
-    background: linear-gradient(to bottom right, var(--bg), var(--bg-tinted), var(--bg-tinted-secondary));
+    @apply bg-slate-900 text-slate-100 font-sans antialiased;
+    background: linear-gradient(to bottom right, var(--bg), var(--bg-elevated), var(--bg-tinted));
     background-color: var(--bg);
     color: var(--text);
+    min-height: 100vh;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold text-neutral-900;
+    @apply font-bold text-slate-100;
     color: var(--text);
   }
 
@@ -176,8 +177,8 @@
   
   /* Card Styles */
   .card {
-    @apply bg-white rounded-xl p-6 border border-neutral-200;
-    @apply hover:border-primary-300 hover:shadow-lg hover:shadow-primary-500/10;
+    @apply bg-slate-800 rounded-xl p-6 border border-slate-700;
+    @apply hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/20;
     @apply transition-all duration-300 ease-out;
     background-color: var(--card);
     border-color: var(--border);
@@ -223,19 +224,19 @@
   
   /* Input Fields */
   .input {
-    @apply w-full px-4 py-3 bg-white border border-neutral-300 rounded-lg;
-    @apply text-neutral-900 placeholder-neutral-400;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+    @apply w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg;
+    @apply text-slate-100 placeholder-slate-400;
+    @apply focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500;
     @apply transition-all duration-200;
-    @apply disabled:bg-neutral-100 disabled:cursor-not-allowed;
-    background-color: var(--bg);
+    @apply disabled:bg-slate-700 disabled:cursor-not-allowed;
+    background-color: var(--card);
     border-color: var(--border);
     color: var(--text);
   }
   
   .input:focus {
     border-color: var(--ring);
-    box-shadow: 0 0 0 3px rgba(245, 131, 32, 0.1);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
   }
   
   /* Gradient Classes */

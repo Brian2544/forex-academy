@@ -1,57 +1,76 @@
-#!/usr/bin/env node
-
 /**
- * Test script to diagnose database connection issues
+ * Test script to verify Supabase connection
+ * Run: node scripts/test-connection.js
  */
 
-require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-const { PrismaClient } = require('@prisma/client');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-async function testConnection() {
-  console.log('🔍 Testing database connections...\n');
-  
-  // Test 1: Direct URL
-  if (process.env.DIRECT_URL) {
-    console.log('📋 Testing DIRECT_URL:');
-    console.log(`   Host: ${new URL(process.env.DIRECT_URL).hostname}`);
-    console.log(`   Port: ${new URL(process.env.DIRECT_URL).port || '5432'}`);
-    console.log(`   User: ${new URL(process.env.DIRECT_URL).username}`);
-    console.log('');
-    
-    try {
-      const prisma = new PrismaClient({
-        datasourceUrl: process.env.DIRECT_URL,
-      });
-      
-      console.log('   ⏳ Attempting connection...');
-      await prisma.$connect();
-      console.log('   ✅ Connection successful!\n');
-      await prisma.$disconnect();
-    } catch (error) {
-      console.log(`   ❌ Connection failed: ${error.message}\n`);
-    }
-  } else {
-    console.log('❌ DIRECT_URL not set in .env\n');
-  }
-  
-  // Test 2: Regular DATABASE_URL
-  if (process.env.DATABASE_URL) {
-    console.log('📋 Testing DATABASE_URL (for app queries):');
-    const url = new URL(process.env.DATABASE_URL);
-    console.log(`   Host: ${url.hostname}`);
-    console.log(`   Port: ${url.port || '5432'}`);
-    console.log(`   User: ${url.username}`);
-    console.log(`   Using pooler: ${process.env.DATABASE_URL.includes('pgbouncer') ? 'Yes' : 'No'}`);
-    console.log('');
-  }
-  
-  console.log('💡 TIPS:');
-  console.log('   - If DIRECT_URL fails, check Supabase → Settings → Database → Network Restrictions');
-  console.log('   - Make sure "Allow connections from anywhere" is enabled, or add your IP');
-  console.log('   - The direct connection host should be: db.xxxxx.supabase.co (not pooler.supabase.com)');
-  console.log('');
+// Load .env
+dotenv.config({ path: join(__dirname, '..', '.env') });
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+console.log('🔍 Testing Supabase Connection...\n');
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('❌ Missing Supabase credentials in .env file');
+  process.exit(1);
 }
 
-testConnection().catch(console.error);
+console.log('✅ Environment variables loaded');
+console.log(`   URL: ${supabaseUrl.substring(0, 30)}...`);
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
+
+// Test connection by checking if we can query a table
+async function testConnection() {
+  try {
+    // Try to query the profiles table (it might not exist yet, that's okay)
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('count')
+      .limit(1);
+
+    if (error) {
+      if (error.code === 'PGRST116' || error.message.includes('does not exist') || error.message.includes('schema cache')) {
+        console.log('⚠️  Database tables not created yet');
+        console.log('   ✅ Connection to Supabase is working!');
+        console.log('\n📋 Next steps:');
+        console.log('   1. Go to your Supabase Dashboard');
+        console.log('   2. Navigate to SQL Editor');
+        console.log('   3. Copy and paste the contents of database/schema.sql');
+        console.log('   4. Run the SQL script');
+        console.log('   5. Then you can create your first user!');
+        return;
+      }
+      throw error;
+    }
+
+    console.log('✅ Successfully connected to Supabase!');
+    console.log('✅ Database tables exist');
+    console.log(`   Found ${data?.length || 0} profiles`);
+  } catch (error) {
+    console.error('❌ Connection test failed:', error.message);
+    if (error.message.includes('Invalid API key')) {
+      console.error('   Check your SUPABASE_SERVICE_ROLE_KEY in .env');
+    } else if (error.message.includes('Failed to fetch')) {
+      console.error('   Check your SUPABASE_URL in .env');
+    }
+    process.exit(1);
+  }
+}
+
+testConnection();
 

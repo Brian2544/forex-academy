@@ -64,14 +64,16 @@ const TraineeSectionDetails = () => {
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    alert('Form submitted! (This is a placeholder - no backend integration)');
+    // TODO: Implement form submission to backend
+    console.log('Form submitted:', formData);
     setFormData({ name: '', email: '', message: '' });
   };
 
   const handleProfileSubmit = (e) => {
     e.preventDefault();
     setIsEditingProfile(false);
-    alert('Profile updated! (This is a placeholder - no backend integration)');
+    // TODO: Implement profile update to backend
+    console.log('Profile updated:', profileData);
   };
 
   const renderItem = (item, index) => {
