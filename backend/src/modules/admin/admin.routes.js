@@ -3,6 +3,7 @@ import { requireAuth } from '../../middleware/requireAuth.js';
 import { requireRole } from '../../middleware/requireRole.js';
 import {
   updateUserRole,
+  getSettings,
   updateSettings,
   coursesHandlers,
   lessonsHandlers,
@@ -15,14 +16,16 @@ import {
 
 const router = express.Router();
 
-// All admin routes require auth and admin/owner role
+// All admin routes require auth and admin roles (including new admin types)
 router.use(requireAuth);
-router.use(requireRole('admin', 'owner'));
+router.use(requireRole('admin', 'super_admin', 'owner', 'content_admin', 'support_admin', 'finance_admin'));
 
-// Role management (owner only)
-router.post('/users/:id/role', requireRole('owner'), updateUserRole);
+// Role management (owner, super_admin) - kept for backwards compatibility
+// Note: New implementations should use /owner/users/:id/role
+router.post('/users/:id/role', requireRole('owner', 'super_admin'), updateUserRole);
 
 // Settings
+router.get('/settings', getSettings);
 router.patch('/settings', updateSettings);
 
 // Courses CRUD

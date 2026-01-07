@@ -7,6 +7,7 @@ import OnboardingGuard from '../components/guards/OnboardingGuard';
 import PublicLayout from '../layouts/PublicLayout';
 import ProtectedLayout from '../layouts/ProtectedLayout';
 import AdminLayout from '../layouts/AdminLayout';
+import OwnerLayout from '../layouts/OwnerLayout';
 
 // Public Pages
 import Home from '../pages/Home';
@@ -34,11 +35,14 @@ import Analytics from '../pages/admin/Analytics';
 import Finance from '../pages/admin/Finance';
 import Settings from '../pages/admin/Settings';
 import AdminUsers from '../pages/admin/AdminUsers';
+import Billing from '../pages/Billing';
+
+// Owner Pages
+import OwnerDashboard from '../pages/owner/OwnerDashboard';
 
 // Student & Instructor Pages
 import StudentDashboard from '../pages/student/StudentDashboard';
 import InstructorDashboard from '../pages/instructor/InstructorDashboard';
-import Billing from '../pages/Billing';
 import StudentFAQs from '../pages/student/FAQs';
 import StudentContact from '../pages/student/Contact';
 import StudentTestimonials from '../pages/student/Testimonials';
@@ -74,11 +78,24 @@ const AppRoutes = () => {
 
       {/* Protected Routes - Use ProtectedLayout */}
       <Route element={<ProtectedLayout />}>
+        {/* Owner Routes - Use OwnerLayout */}
+        <Route
+          path="/owner"
+          element={
+            <RoleRoute roles={['owner']}>
+              <OwnerLayout />
+            </RoleRoute>
+          }
+        >
+          <Route index element={<Navigate to="/owner/dashboard" replace />} />
+          <Route path="dashboard" element={<OwnerDashboard />} />
+        </Route>
+
         {/* Admin Routes */}
         <Route
           path="/admin"
           element={
-            <RoleRoute roles={['admin', 'owner']}>
+            <RoleRoute roles={['admin', 'super_admin', 'owner', 'content_admin', 'support_admin', 'finance_admin']}>
               <AdminLayout />
             </RoleRoute>
           }
@@ -95,11 +112,12 @@ const AppRoutes = () => {
           <Route path="signals" element={<Signals />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="finance" element={<Finance />} />
+          <Route path="billing" element={<Billing />} />
           <Route path="settings" element={<Settings />} />
           <Route
             path="admin-users"
             element={
-              <RoleRoute roles={['owner']}>
+              <RoleRoute roles={['owner', 'super_admin']}>
                 <AdminUsers />
               </RoleRoute>
             }

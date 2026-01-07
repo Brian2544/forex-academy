@@ -47,37 +47,34 @@ export const AuthProvider = ({ children }) => {
 
     // Listen for auth changes
     // NOTE: Navigation is handled by login/register functions, not here
-    // This listener only updates state to keep UI in sync
+    // IMPORTANT: Do NOT fetch profile here during SIGNED_IN - let login() handle bootstrap first
+    // This prevents race condition where old role is set before bootstrap updates it
     const authStateChangeResult = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('[AuthContext] Auth state change:', event, { hasSession: !!session, hasUser: !!session?.user });
       
       if (event === 'SIGNED_IN' && session) {
         // Only update user if it's different (prevents unnecessary re-renders)
+        // DO NOT fetch profile here - login() will call bootstrap first to ensure correct role
         setUser((prevUser) => {
           if (prevUser?.id !== session.user.id) {
-            console.log('[AuthContext] Setting user from auth listener');
+            console.log('[AuthContext] Setting user from auth listener (profile will be set by login/bootstrap)');
             return session.user;
           }
           return prevUser;
         });
-        
-        // Try to fetch profile in background (don't block, don't navigate)
-        // Navigation is handled by login/register functions
-        api.get('/users/me')
-          .then((response) => {
-            if (response.data.success && response.data.data?.profile) {
-              console.log('[AuthContext] Profile fetched in auth listener');
-              setProfile(response.data.data.profile);
-            }
-          })
-          .catch((error) => {
-            // Silent - profile fetch failed, will be fetched later
-            console.log('[AuthContext] Profile fetch failed in auth listener (non-critical):', error.message);
-          });
+        // Profile will be set by login() after bootstrap completes - don't fetch here to avoid race condition
       } else if (event === 'SIGNED_OUT') {
         console.log('[AuthContext] User signed out');
         setUser(null);
         setProfile(null);
+      } else if (event === 'TOKEN_REFRESHED' && session) {
+        // On token refresh, update user but don't fetch profile (avoid race with bootstrap)
+        setUser((prevUser) => {
+          if (prevUser?.id !== session.user.id) {
+            return session.user;
+          }
+          return prevUser;
+        });
       }
     });
 
@@ -131,89 +128,74 @@ export const AuthProvider = ({ children }) => {
       console.log('[AuthContext] Setting user state');
       setUser(signInData.user);
 
-      // Fetch profile immediately before navigation (required for isAuthenticated check)
+      // ALWAYS call bootstrap first to ensure role is correct (server-authoritative)
+      // Then get /users/me, then route based on role
       try {
-        console.log('[AuthContext] Fetching profile from /users/me');
-        const profilePromise = api.get('/users/me');
-        const response = await Promise.race([
-          profilePromise,
+        console.log('[AuthContext] Calling /auth/bootstrap to ensure role is correct');
+        const bootstrapPromise = api.post('/auth/bootstrap', {
+          first_name: '',
+          last_name: '',
+          country: '',
+          country_code: '',
+        });
+        const bootstrapResponse = await Promise.race([
+          bootstrapPromise,
           timeoutPromise
         ]);
         
-        console.log('[AuthContext] Profile fetch completed');
-        const profile = response.data.data?.profile || response.data.profile;
-        if (profile) {
-          console.log('[AuthContext] Profile found, setting profile and navigating');
-          setProfile(profile);
+        console.log('[AuthContext] Bootstrap completed, response:', bootstrapResponse.data);
+        
+        // Get the role from bootstrap response or fetch profile
+        let finalRole = bootstrapResponse.data?.role || bootstrapResponse.data?.data?.role;
+        let profile = bootstrapResponse.data?.profile || bootstrapResponse.data?.data;
+        
+        // If we don't have profile yet, fetch it
+        if (!profile) {
+          console.log('[AuthContext] Fetching profile from /users/me');
+          const mePromise = api.get('/users/me');
+          const meResponse = await Promise.race([
+            mePromise,
+            timeoutPromise
+          ]);
           
-          // Navigate based on role
-          const role = profile.role || 'student';
-          if (['admin', 'owner'].includes(role.toLowerCase())) {
-            console.log('[AuthContext] Navigating to admin/overview');
-            navigate('/admin/overview', { replace: true });
-          } else if (role.toLowerCase() === 'instructor') {
-            console.log('[AuthContext] Navigating to instructor/overview');
-            navigate('/instructor/overview', { replace: true });
-          } else {
-            console.log('[AuthContext] Navigating to student/dashboard');
-            navigate('/student/dashboard', { replace: true });
-          }
-        } else {
-          // Profile not found, try to bootstrap
-          console.log('[AuthContext] Profile not found, attempting bootstrap');
-          try {
-            const bootstrapPromise = api.post('/auth/bootstrap', {
-              first_name: '',
-              last_name: '',
-              country: '',
-              country_code: '',
-            });
-            await Promise.race([bootstrapPromise, timeoutPromise]);
-            
-            console.log('[AuthContext] Bootstrap completed, fetching profile again');
-            const retryPromise = api.get('/users/me');
-            const retryResponse = await Promise.race([
-              retryPromise,
-              timeoutPromise
-            ]);
-            
-            const retryProfile = retryResponse.data.data?.profile || retryResponse.data.profile;
-            if (retryProfile) {
-              console.log('[AuthContext] Profile found after bootstrap, navigating');
-              setProfile(retryProfile);
-              const role = retryProfile.role || 'student';
-              if (['admin', 'owner'].includes(role.toLowerCase())) {
-                navigate('/admin/overview', { replace: true });
-              } else if (role.toLowerCase() === 'instructor') {
-                navigate('/instructor/overview', { replace: true });
-              } else {
-                navigate('/student/dashboard', { replace: true });
-              }
-            } else {
-              // No profile after bootstrap - set minimal profile to allow navigation
-              console.log('[AuthContext] No profile after bootstrap, setting minimal profile');
-              setProfile({ 
-                id: signInData.user.id, 
-                role: 'student',
-                email: signInData.user.email 
-              });
-              navigate('/student/dashboard', { replace: true });
-            }
-          } catch (bootstrapError) {
-            console.error('[AuthContext] Bootstrap failed:', bootstrapError);
-            // Bootstrap failed, navigate to student dashboard anyway
-            setProfile({ 
-              id: signInData.user.id, 
-              role: 'student',
-              email: signInData.user.email 
-            });
-            navigate('/student/dashboard', { replace: true });
-          }
+          profile = meResponse.data.data?.profile || meResponse.data.profile;
+          finalRole = profile?.role || meResponse.data.data?.role || finalRole || 'student';
         }
-      } catch (profileError) {
-        console.error('[AuthContext] Profile fetch failed:', profileError);
-        // Profile fetch failed - set a minimal profile to allow navigation
-        // The auth state change listener will fetch the real profile
+        
+        if (profile) {
+          console.log('[AuthContext] Profile found, role:', finalRole);
+          setProfile(profile);
+        } else {
+          // Fallback: set minimal profile
+          console.log('[AuthContext] No profile found, setting minimal profile');
+          setProfile({ 
+            id: signInData.user.id, 
+            role: finalRole || 'student',
+            email: signInData.user.email 
+          });
+        }
+        
+        // Navigate based on role (use finalRole from bootstrap/me response)
+        const roleToUse = finalRole || profile?.role || 'student';
+        const roleLower = roleToUse.toLowerCase();
+        console.log('[AuthContext] Navigating based on role:', roleLower);
+        
+        if (roleLower === 'owner') {
+          console.log('[AuthContext] Navigating to owner/dashboard');
+          navigate('/owner/dashboard', { replace: true });
+        } else if (['admin', 'super_admin', 'content_admin', 'support_admin', 'finance_admin'].includes(roleLower)) {
+          console.log('[AuthContext] Navigating to admin/overview');
+          navigate('/admin/overview', { replace: true });
+        } else if (roleLower === 'instructor') {
+          console.log('[AuthContext] Navigating to instructor/overview');
+          navigate('/instructor/overview', { replace: true });
+        } else {
+          console.log('[AuthContext] Navigating to student/dashboard');
+          navigate('/student/dashboard', { replace: true });
+        }
+      } catch (authError) {
+        console.error('[AuthContext] Bootstrap or profile fetch failed:', authError);
+        // Fallback: set minimal profile and navigate to student dashboard
         setProfile({ 
           id: signInData.user.id, 
           role: 'student',
@@ -362,10 +344,13 @@ export const AuthProvider = ({ children }) => {
           
           // Profile is complete, route based on role
           const role = profile?.role || 'student';
+          const roleLower = role.toLowerCase();
           console.log('[AuthContext] Navigating based on role:', role);
-          if (['admin', 'owner'].includes(role)) {
+          if (roleLower === 'owner') {
+            navigate('/owner/dashboard', { replace: true });
+          } else if (['admin', 'super_admin', 'content_admin', 'support_admin', 'finance_admin'].includes(roleLower)) {
             navigate('/admin/overview', { replace: true });
-          } else if (role === 'instructor') {
+          } else if (roleLower === 'instructor') {
             navigate('/instructor/overview', { replace: true });
           } else {
             navigate('/student/dashboard', { replace: true });
@@ -458,14 +443,15 @@ export const AuthProvider = ({ children }) => {
 
   const refreshProfile = useCallback(async () => {
     try {
-      const response = await api.get('/me');
-      if (response.data.success || response.data.profile) {
-        const profile = response.data.profile || response.data.data?.profile;
+      const response = await api.get('/users/me');
+      if (response.data.success && response.data.data?.profile) {
+        const profile = response.data.data.profile;
         setProfile(profile);
         return { success: true, profile };
       }
+      return { success: false, error: 'Invalid response' };
     } catch (error) {
-      // Silent - return error without logging
+      console.error('[AuthContext] Error refreshing profile:', error);
       return { success: false, error: error.message };
     }
   }, []);

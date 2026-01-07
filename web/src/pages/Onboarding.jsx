@@ -97,11 +97,14 @@ const Onboarding = () => {
         const meResponse = await api.get('/users/me');
         const profile = meResponse.data.data?.profile || meResponse.data.profile;
         const userRole = profile?.role || 'student';
+        const roleLower = userRole.toLowerCase();
         
         // Route based on role
-        if (['admin', 'owner'].includes(userRole)) {
+        if (roleLower === 'owner') {
+          navigate('/owner/dashboard', { replace: true });
+        } else if (['admin', 'super_admin', 'content_admin', 'support_admin', 'finance_admin'].includes(roleLower)) {
           navigate('/admin/overview', { replace: true });
-        } else if (userRole === 'instructor') {
+        } else if (roleLower === 'instructor') {
           navigate('/instructor/overview', { replace: true });
         } else {
           navigate('/student/dashboard', { replace: true });

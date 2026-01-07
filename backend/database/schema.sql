@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   last_name TEXT,
   country TEXT,
   country_code TEXT,
-  role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'admin', 'owner')),
+  role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'admin', 'super_admin', 'owner', 'content_admin', 'support_admin', 'finance_admin')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

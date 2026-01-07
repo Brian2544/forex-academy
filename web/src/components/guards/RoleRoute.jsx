@@ -27,15 +27,21 @@ const RoleRoute = ({ children, roles = [] }) => {
     }
   }
 
-  // Check role
-  if (roles.length > 0 && !roles.includes(role)) {
-    // Redirect to appropriate dashboard based on role
-    if (['admin', 'owner'].includes(role)) {
-      return <Navigate to="/admin/overview" replace />;
-    } else if (role === 'instructor') {
-      return <Navigate to="/instructor/overview" replace />;
-    } else {
-      return <Navigate to="/student/dashboard" replace />;
+  // Check role (case-insensitive comparison)
+  if (roles.length > 0) {
+    const roleLower = role?.toLowerCase();
+    const rolesLower = roles.map(r => r.toLowerCase());
+    if (!rolesLower.includes(roleLower)) {
+      // Redirect to appropriate dashboard based on role
+      if (roleLower === 'owner') {
+        return <Navigate to="/owner/dashboard" replace />;
+      } else if (['admin', 'super_admin', 'content_admin', 'support_admin', 'finance_admin'].includes(roleLower)) {
+        return <Navigate to="/admin/overview" replace />;
+      } else if (roleLower === 'instructor') {
+        return <Navigate to="/instructor/overview" replace />;
+      } else {
+        return <Navigate to="/student/dashboard" replace />;
+      }
     }
   }
 

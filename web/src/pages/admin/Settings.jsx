@@ -19,6 +19,20 @@ const Settings = () => {
     }
   });
 
+  const updateWhatsAppMutation = useMutation({
+    mutationFn: async (whatsapp_channel_url) => {
+      const response = await api.patch('/admin/settings', { whatsapp_channel_url });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-settings']);
+      toast.success('WhatsApp channel URL updated successfully');
+    },
+    onError: () => {
+      toast.error('Failed to update WhatsApp channel URL');
+    }
+  });
+
   const updateMutation = useMutation({
     mutationFn: async ({ key, value }) => {
       const response = await api.put(`/admin/settings/${key}`, { value });
@@ -35,6 +49,10 @@ const Settings = () => {
 
   const handleUpdate = (key, value) => {
     updateMutation.mutate({ key, value });
+  };
+
+  const handleUpdateWhatsApp = () => {
+    updateWhatsAppMutation.mutate(settings.whatsapp_channel_url);
   };
 
   if (isLoading) {
@@ -55,6 +73,30 @@ const Settings = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">General Settings</h2>
         <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              WhatsApp Channel URL
+            </label>
+            <p className="text-xs text-gray-500 mb-2">
+              The WhatsApp channel link that will appear in the WhatsApp button for authenticated users.
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={settings.whatsapp_channel_url || ''}
+                onChange={(e) => setSettings({ ...settings, whatsapp_channel_url: e.target.value })}
+                placeholder="https://whatsapp.com/channel/..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
+              <button
+                onClick={handleUpdateWhatsApp}
+                disabled={updateWhatsAppMutation.isLoading}
+                className="px-4 py-2 bg-gradient-to-r from-orange-500 to-green-500 text-white rounded-lg hover:from-orange-600 hover:to-green-600 disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Site Name</label>
             <div className="flex gap-2">

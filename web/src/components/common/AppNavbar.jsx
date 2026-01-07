@@ -15,7 +15,9 @@ const AppNavbar = () => {
   // Determine dashboard link based on role
   const getDashboardLink = () => {
     const role = profile?.role?.toLowerCase() || 'student';
-    if (['admin', 'owner'].includes(role)) {
+    if (role === 'owner') {
+      return '/owner/dashboard';
+    } else if (['admin', 'super_admin', 'content_admin', 'support_admin', 'finance_admin'].includes(role)) {
       return '/admin/overview';
     } else if (role === 'instructor') {
       return '/instructor/overview';
@@ -62,10 +64,9 @@ const AppNavbar = () => {
               My Portal
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-amber-400 group-hover:w-full transition-all duration-300"></span>
             </Link>
-            <Link to="/profile" className="text-slate-300 hover:text-amber-400 transition font-medium relative group">
-              {profile?.first_name || profile?.last_name || user?.email?.split('@')[0] || 'Profile'}
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-amber-400 group-hover:w-full transition-all duration-300"></span>
-            </Link>
+            <span className="text-slate-300 font-medium">
+              {profile?.first_name || profile?.last_name || user?.email?.split('@')[0] || 'User'}
+            </span>
             <button
               onClick={handleLogout}
               className="px-6 py-2 border-2 border-amber-400 text-amber-400 rounded-lg hover:bg-amber-400 hover:text-slate-900 hover:shadow-md transition-all duration-300 font-medium"
@@ -108,9 +109,9 @@ const AppNavbar = () => {
               <Link to={getDashboardLink()} className="text-slate-300 hover:text-amber-400 transition font-medium">
                 My Portal
               </Link>
-              <Link to="/profile" className="text-slate-300 hover:text-amber-400 transition font-medium">
-                Profile
-              </Link>
+              <span className="text-slate-300 font-medium">
+                {profile?.first_name || profile?.last_name || user?.email?.split('@')[0] || 'User'}
+              </span>
               <button
                 onClick={handleLogout}
                 className="text-left text-slate-300 hover:text-amber-400 transition font-medium"

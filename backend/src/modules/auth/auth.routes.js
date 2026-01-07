@@ -1,6 +1,6 @@
 import express from 'express';
 import { requireAuth } from '../../middleware/requireAuth.js';
-import { register, bootstrapProfile } from './auth.controller.js';
+import { register, bootstrapProfileHandler } from './auth.controller.js';
 
 const router = express.Router();
 
@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/register', register);
 
 // POST /auth/bootstrap - Create or update user profile (requires auth)
-router.post('/bootstrap', requireAuth, bootstrapProfile);
+router.post('/bootstrap', requireAuth, bootstrapProfileHandler);
 
 export default router;
 

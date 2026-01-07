@@ -1,6 +1,16 @@
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-dotenv.config();
+// Get the directory of this file (ES module way)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load .env from backend directory (one level up from src/config)
+dotenv.config({ path: join(__dirname, '..', '..', '.env') });
+
+// Ensure OWNER_EMAILS is available (don't crash if absent)
+const ownerEmails = process.env.OWNER_EMAILS || '';
 
 export const config = {
   port: process.env.PORT || 4000,

@@ -44,23 +44,34 @@ const AdminLayout = () => {
     { icon: Settings, label: 'Settings', path: '/admin/settings' }
   ];
 
-  // Show admin users only for super_admin
-  if (profile?.role === 'super_admin') {
-    menuItems.push({ icon: Users, label: 'Admin Users', path: '/admin/admin-users' });
+  // Show "Manage Users" for owner/admin/super_admin
+  const userRole = profile?.role?.toLowerCase();
+  if (['owner', 'admin', 'super_admin'].includes(userRole)) {
+    // Owner should see link to owner dashboard for full user management
+    if (userRole === 'owner') {
+      menuItems.push({ icon: Users, label: 'Manage Users', path: '/owner/dashboard' });
+    } else {
+      // Admin and super_admin see admin-users page
+      menuItems.push({ icon: Users, label: 'Manage Users', path: '/admin/admin-users' });
+    }
   }
 
   const getInitials = (name) => {
-    if (!name) return 'U';
-    const parts = name.split(' ');
+    if (!name || name === 'undefined' || name === 'null') return 'U';
+    const nameStr = String(name).trim();
+    if (!nameStr) return 'U';
+    const parts = nameStr.split(' ').filter(p => p);
     if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
+      const first = parts[0][0] || '';
+      const second = parts[1][0] || '';
+      return (first + second).toUpperCase() || 'U';
     }
-    return name.substring(0, 2).toUpperCase();
+    return nameStr.substring(0, 2).toUpperCase() || 'U';
   };
 
-  const displayName = profile?.first_name && profile?.last_name
-    ? `${profile.first_name} ${profile.last_name}`
-    : profile?.email || 'User';
+  const displayName = (profile?.first_name && profile?.last_name)
+    ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+    : (profile?.email ? profile.email.split('@')[0] : null) || 'User';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -123,8 +134,8 @@ const AdminLayout = () => {
               </div>
               {sidebarOpen && (
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate">{displayName}</p>
-                  <p className="text-xs text-white/80 uppercase">{profile?.role || 'USER'}</p>
+                  <p className="text-sm font-semibold truncate">{displayName || 'User'}</p>
+                  <p className="text-xs text-white/80 uppercase">{(profile?.role && profile.role !== 'undefined') ? profile.role : 'USER'}</p>
                 </div>
               )}
             </div>
@@ -171,16 +182,15 @@ const AdminLayout = () => {
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100"
+                  type="button"
                 >
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-green-500 flex items-center justify-center text-white text-sm font-bold">
                     {getInitials(displayName)}
                   </div>
-                  {sidebarOpen && (
-                    <div className="text-left">
-                      <p className="text-sm font-semibold text-gray-900">{displayName}</p>
-                      <p className="text-xs text-gray-500 uppercase">{profile?.role || 'USER'}</p>
-                    </div>
-                  )}
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-gray-900">{displayName || 'User'}</p>
+                    <p className="text-xs text-gray-500 uppercase">{(profile?.role && profile.role !== 'undefined') ? profile.role : 'USER'}</p>
+                  </div>
                 </button>
                 {userMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">

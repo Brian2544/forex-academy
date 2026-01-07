@@ -1,5 +1,6 @@
 import { supabaseClient } from '../config/supabaseClient.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { ensureProfileExists } from '../utils/profileBootstrap.js';
 
 export const requireAuth = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -23,6 +24,10 @@ export const requireAuth = asyncHandler(async (req, res, next) => {
         message: 'Invalid or expired token',
       });
     }
+
+    // Ensure profile exists (lightweight bootstrap if missing)
+    // This prevents "User not found" errors downstream
+    await ensureProfileExists(user.id, user.email);
 
     // Attach user to request
     req.user = user;
