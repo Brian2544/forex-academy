@@ -32,16 +32,16 @@ const Courses = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-primary-50/30 to-secondary-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-[#070A0F] via-[#0B1220] to-[#0F1A2E]">
       
       <div className="container mx-auto px-4 pt-24 pb-12">
         <div className="text-center mb-12 relative">
           <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 via-secondary-500/5 to-primary-500/10 rounded-3xl blur-3xl"></div>
           <div className="relative">
-            <h1 className="text-5xl font-bold text-neutral-900 mb-4">
+            <h1 className="text-5xl font-bold text-[#F5F7FF] mb-4">
               Comprehensive <span className="text-gradient">Forex Trading</span> Courses
             </h1>
-            <p className="text-neutral-600 text-xl max-w-3xl mx-auto leading-relaxed">
+            <p className="text-[#B6C2E2] text-xl max-w-3xl mx-auto leading-relaxed">
               Master the art of Forex trading with our structured, progressive learning system. 
               From complete beginner to advanced professional, we have the perfect course for your skill level.
             </p>
@@ -87,7 +87,7 @@ const Courses = () => {
                     <IconComponent className="w-12 h-12 text-accent-600" />
                   )}
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">{course.level} Course</h3>
+                <h3 className="text-2xl font-bold text-[#F5F7FF] mb-3">{course.level} Course</h3>
                 <p className="text-gray-600 mb-4 leading-relaxed">{course.description}</p>
                 <div className="space-y-2 mb-4">
                   {(() => {
@@ -119,7 +119,7 @@ const Courses = () => {
 
         {/* What You'll Learn Section */}
         <div className="card mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">What You'll Learn</h2>
+          <h2 className="text-3xl font-bold text-[#F5F7FF] mb-6">What You'll Learn</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-xl font-semibold text-accent-600 mb-3">Core Concepts</h3>
@@ -170,7 +170,7 @@ const Courses = () => {
               className={`px-6 py-2 rounded-lg font-medium transition ${
                 filter === level
                   ? 'bg-primary-500 text-white'
-                  : 'bg-white border-2 border-neutral-200 text-neutral-700 hover:border-primary-300 hover:text-primary-600'
+                  : 'bg-[#0B1220] border-2 border-[rgba(255,255,255,0.08)] text-[#B6C2E2] hover:border-primary-300 hover:text-primary-600'
               }`}
             >
               {level.charAt(0).toUpperCase() + level.slice(1)}

@@ -59,22 +59,22 @@ const DashboardLayout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-primary-50/30 to-secondary-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-[#070A0F] via-[#0B1220] to-[#0F1A2E]">
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 z-40 h-screen transition-transform ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 w-64 bg-white border-r border-neutral-200 shadow-lg`}
+        } lg:translate-x-0 w-64 bg-[#0B1220] border-r border-[rgba(255,255,255,0.08)] shadow-lg`}
       >
         <div className="h-full flex flex-col">
           {/* Logo */}
-          <div className="p-6 border-b border-neutral-200">
+          <div className="p-6 border-b border-[rgba(255,255,255,0.08)]">
             <Link to={isAdmin ? '/admin/dashboard' : '/student/dashboard'} className="flex items-center space-x-3">
               <div className="w-10 h-10 gradient-brand rounded-xl flex items-center justify-center shadow-md shadow-primary-500/30">
                 <span className="text-white font-black text-lg">FX</span>
               </div>
               <div>
-                <span className="text-lg font-black text-neutral-900">Forex Academy</span>
+                <span className="text-lg font-black text-[#F5F7FF]">Forex Academy</span>
                 <div className="text-xs text-secondary-600 font-medium">
                   {isAdmin ? 'Admin Panel' : 'Student Portal'}
                 </div>
@@ -94,7 +94,7 @@ const DashboardLayout = ({ children }) => {
                   className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                     isActive(item.path)
                       ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-lg shadow-primary-500/30'
-                      : 'text-neutral-700 hover:bg-primary-50 hover:text-primary-600'
+                      : 'text-[#B6C2E2] hover:bg-[rgba(216,181,71,0.1)] hover:text-primary-600'
                   }`}
                 >
                   {IconComponent && <IconComponent className="w-5 h-5" />}
@@ -105,21 +105,21 @@ const DashboardLayout = ({ children }) => {
           </nav>
 
           {/* User Section */}
-          <div className="p-4 border-t border-neutral-200">
-            <div className="flex items-center space-x-3 px-4 py-3 bg-neutral-50 rounded-xl">
+          <div className="p-4 border-t border-[rgba(255,255,255,0.08)]">
+            <div className="flex items-center space-x-3 px-4 py-3 bg-[#0F1A2E] rounded-xl">
               <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center text-white font-bold">
                 {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-neutral-900 truncate">
+                <div className="text-sm font-semibold text-[#F5F7FF] truncate">
                   {user?.name || user?.email?.split('@')[0] || 'User'}
                 </div>
-                <div className="text-xs text-neutral-600 capitalize">{user?.role || 'Student'}</div>
+                <div className="text-xs text-[#B6C2E2] capitalize">{user?.role || 'Student'}</div>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="w-full mt-2 px-4 py-2 text-sm text-neutral-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+              className="w-full mt-2 px-4 py-2 text-sm text-[#B6C2E2] hover:text-primary-600 hover:bg-[rgba(216,181,71,0.1)] rounded-lg transition-colors"
             >
               Logout
             </button>
@@ -138,11 +138,11 @@ const DashboardLayout = ({ children }) => {
       {/* Main Content */}
       <div className="lg:pl-64">
         {/* Topbar */}
-        <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-lg border-b border-neutral-200 shadow-sm">
+        <header className="sticky top-0 z-20 bg-[#0B1220]/95 backdrop-blur-lg border-b border-[rgba(255,255,255,0.08)] shadow-sm">
           <div className="flex items-center justify-between px-4 lg:px-8 h-16">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden text-neutral-700 hover:text-primary-600 p-2"
+              className="lg:hidden text-[#B6C2E2] hover:text-primary-600 p-2"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -154,10 +154,10 @@ const DashboardLayout = ({ children }) => {
                 <input
                   type="search"
                   placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-2 bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full pl-10 pr-4 py-2 bg-[#0F1A2E] border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-[#F5F7FF]"
                 />
                 <svg
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#7E8AAE]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -169,7 +169,7 @@ const DashboardLayout = ({ children }) => {
 
             <div className="flex items-center space-x-4">
               {/* Notifications */}
-              <button className="relative p-2 text-neutral-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+              <button className="relative p-2 text-[#B6C2E2] hover:text-primary-600 hover:bg-[rgba(216,181,71,0.1)] rounded-lg transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
@@ -182,12 +182,12 @@ const DashboardLayout = ({ children }) => {
               <div className="flex items-center space-x-3">
                 <Link
                   to="/profile"
-                  className="flex items-center space-x-2 px-3 py-2 hover:bg-primary-50 rounded-lg transition-colors"
+                  className="flex items-center space-x-2 px-3 py-2 hover:bg-[rgba(216,181,71,0.1)] rounded-lg transition-colors"
                 >
                   <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
                     {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
                   </div>
-                  <span className="hidden md:block text-sm font-medium text-neutral-700">
+                  <span className="hidden md:block text-sm font-medium text-[#B6C2E2]">
                     {user?.name || user?.email?.split('@')[0] || 'User'}
                   </span>
                 </Link>

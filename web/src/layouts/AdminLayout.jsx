@@ -74,30 +74,30 @@ const AdminLayout = () => {
     : (profile?.email ? profile.email.split('@')[0] : null) || 'User';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#070A0F]">
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-40 h-screen bg-white border-r border-gray-200 transition-all duration-300 ${
+        className={`fixed left-0 top-0 z-40 h-screen bg-[#0B1220] border-r border-[rgba(255,255,255,0.08)] transition-all duration-300 ${
           sidebarOpen ? 'w-64' : 'w-20'
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Logo/Brand */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between p-4 border-b border-[rgba(255,255,255,0.08)]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-green-500 flex items-center justify-center text-white font-bold">
                 FX
               </div>
               {sidebarOpen && (
                 <div>
-                  <h1 className="text-lg font-bold text-gray-900">Forex Academy</h1>
+                  <h1 className="text-lg font-bold text-[#F5F7FF]">Forex Academy</h1>
                   <p className="text-xs text-green-600">Admin Panel</p>
                 </div>
               )}
             </div>
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-1 rounded-md hover:bg-gray-100 lg:hidden"
+              className="p-1 rounded-md hover:bg-[rgba(255,255,255,0.05)] lg:hidden"
             >
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -115,7 +115,7 @@ const AdminLayout = () => {
                     `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                       isActive
                         ? 'bg-gradient-to-r from-orange-500 to-green-500 text-white'
-                        : 'text-gray-700 hover:bg-orange-50 hover:text-orange-600'
+                        : 'text-[#B6C2E2] hover:bg-[rgba(216,181,71,0.1)] hover:text-orange-600'
                     }`
                   }
                 >
@@ -127,9 +127,9 @@ const AdminLayout = () => {
           </nav>
 
           {/* User Card */}
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-[rgba(255,255,255,0.08)]">
             <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-orange-500 to-green-500 text-white">
-              <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-lg bg-[rgba(255,255,255,0.2)] flex items-center justify-center font-bold">
                 {getInitials(displayName)}
               </div>
               {sidebarOpen && (
@@ -142,7 +142,7 @@ const AdminLayout = () => {
             {sidebarOpen && (
               <button
                 onClick={handleLogout}
-                className="mt-2 w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="mt-2 w-full flex items-center gap-2 px-4 py-2 text-sm text-[#B6C2E2] hover:bg-[rgba(255,255,255,0.05)] rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Logout</span>
@@ -155,51 +155,51 @@ const AdminLayout = () => {
       {/* Main Content */}
       <div className={`transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}`}>
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
+        <header className="sticky top-0 z-30 bg-[#0B1220] border-b border-[rgba(255,255,255,0.08)]">
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-4 flex-1">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2 rounded-md hover:bg-gray-100 lg:hidden"
+                className="p-2 rounded-md hover:bg-[rgba(255,255,255,0.05)] lg:hidden"
               >
                 <Menu className="w-5 h-5" />
               </button>
               <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#7E8AAE]" />
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full pl-10 pr-4 py-2 border border-[rgba(255,255,255,0.12)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0F1A2E] text-[#F5F7FF]"
                 />
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <button className="relative p-2 rounded-lg hover:bg-gray-100">
-                <Bell className="w-5 h-5 text-gray-600" />
+              <button className="relative p-2 rounded-lg hover:bg-[rgba(255,255,255,0.05)]">
+                <Bell className="w-5 h-5 text-[#B6C2E2]" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100"
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-[rgba(255,255,255,0.05)]"
                   type="button"
                 >
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-green-500 flex items-center justify-center text-white text-sm font-bold">
                     {getInitials(displayName)}
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-semibold text-gray-900">{displayName || 'User'}</p>
-                    <p className="text-xs text-gray-500 uppercase">{(profile?.role && profile.role !== 'undefined') ? profile.role : 'USER'}</p>
+                    <p className="text-sm font-semibold text-[#F5F7FF]">{displayName || 'User'}</p>
+                    <p className="text-xs text-[#7E8AAE] uppercase">{(profile?.role && profile.role !== 'undefined') ? profile.role : 'USER'}</p>
                   </div>
                 </button>
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                  <div className="absolute right-0 mt-2 w-48 bg-[#0B1220] rounded-lg shadow-lg border border-[rgba(255,255,255,0.08)] py-2">
                     <button
                       onClick={() => {
                         navigate('/admin/settings');
                         setUserMenuOpen(false);
                       }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="w-full text-left px-4 py-2 text-sm text-[#B6C2E2] hover:bg-[rgba(255,255,255,0.05)]"
                     >
                       Profile
                     </button>
@@ -208,14 +208,14 @@ const AdminLayout = () => {
                         navigate('/admin/settings');
                         setUserMenuOpen(false);
                       }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="w-full text-left px-4 py-2 text-sm text-[#B6C2E2] hover:bg-[rgba(255,255,255,0.05)]"
                     >
                       Settings
                     </button>
                     <hr className="my-2" />
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-[rgba(239,68,68,0.1)]"
                     >
                       Logout
                     </button>

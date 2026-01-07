@@ -118,29 +118,29 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#070A0F] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-green-500 flex items-center justify-center text-white font-bold text-2xl mb-4">
             FX
           </div>
-          <h2 className="text-3xl font-bold text-gray-900">Complete Your Profile</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <h2 className="text-3xl font-bold text-[#F5F7FF]">Complete Your Profile</h2>
+          <p className="mt-2 text-sm text-[#B6C2E2]">
             Please provide some information to get started
           </p>
         </div>
 
-        <form className="mt-8 space-y-6 bg-white p-8 rounded-lg shadow-sm border border-gray-200" onSubmit={handleSubmit(onSubmit)}>
+        <form className="mt-8 space-y-6 bg-[#0B1220] p-8 rounded-lg shadow-sm border border-[rgba(255,255,255,0.08)]" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="first_name" className="block text-sm font-medium text-[#B6C2E2] mb-1">
                 First Name *
               </label>
               <input
                 {...register('first_name')}
                 type="text"
                 id="first_name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-3 py-2 border border-[rgba(255,255,255,0.12)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0F1A2E] text-[#F5F7FF]"
                 placeholder="John"
               />
               {errors.first_name && (
@@ -149,14 +149,14 @@ const Onboarding = () => {
             </div>
 
             <div>
-              <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="last_name" className="block text-sm font-medium text-[#B6C2E2] mb-1">
                 Last Name *
               </label>
               <input
                 {...register('last_name')}
                 type="text"
                 id="last_name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-3 py-2 border border-[rgba(255,255,255,0.12)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0F1A2E] text-[#F5F7FF]"
                 placeholder="Doe"
               />
               {errors.last_name && (
@@ -165,13 +165,13 @@ const Onboarding = () => {
             </div>
 
             <div>
-              <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="country" className="block text-sm font-medium text-[#B6C2E2] mb-1">
                 Country *
               </label>
               <select
                 {...register('country')}
                 id="country"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-3 py-2 border border-[rgba(255,255,255,0.12)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0F1A2E] text-[#F5F7FF]"
               >
                 <option value="">Select a country</option>
                 {countries.map((country) => (
@@ -187,13 +187,13 @@ const Onboarding = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="phone_country_code" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="phone_country_code" className="block text-sm font-medium text-[#B6C2E2] mb-1">
                   Country Code *
                 </label>
                 <select
                   {...register('phone_country_code')}
                   id="phone_country_code"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border border-[rgba(255,255,255,0.12)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0F1A2E] text-[#F5F7FF]"
                 >
                   <option value="">Select</option>
                   {countryCodes.map((item) => (
@@ -208,14 +208,14 @@ const Onboarding = () => {
               </div>
 
               <div>
-                <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="phone_number" className="block text-sm font-medium text-[#B6C2E2] mb-1">
                   Phone Number (Optional)
                 </label>
                 <input
                   {...register('phone_number')}
                   type="tel"
                   id="phone_number"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border border-[rgba(255,255,255,0.12)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0F1A2E] text-[#F5F7FF]"
                   placeholder="1234567890"
                 />
                 {errors.phone_number && (

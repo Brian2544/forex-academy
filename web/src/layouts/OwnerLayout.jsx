@@ -96,7 +96,7 @@ const OwnerLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-[#070A0F] flex">
       {/* Sidebar */}
       <aside
         className={`${
@@ -112,14 +112,14 @@ const OwnerLayout = () => {
               </div>
               {sidebarOpen && (
                 <div>
-                  <div className="text-sm font-bold text-gray-900">Forex Academy</div>
-                  <div className="text-xs text-gray-500">Owner Portal</div>
+                  <div className="text-sm font-bold text-[#F5F7FF]">Forex Academy</div>
+                  <div className="text-xs text-[#7E8AAE]">Owner Portal</div>
                 </div>
               )}
             </div>
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-colors"
             >
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -130,7 +130,7 @@ const OwnerLayout = () => {
             {menuItems.map((section) => (
               <div key={section.section}>
                 {sidebarOpen && (
-                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
+                  <div className="text-xs font-semibold text-[#7E8AAE] uppercase tracking-wider mb-2 px-2">
                     {section.section}
                   </div>
                 )}
@@ -146,7 +146,7 @@ const OwnerLayout = () => {
                           `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                             isActive || active
                               ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-md'
-                              : 'text-gray-700 hover:bg-purple-50 hover:text-purple-600'
+                              : 'text-[#B6C2E2] hover:bg-[rgba(147,51,234,0.1)] hover:text-purple-600'
                           }`
                         }
                         title={!sidebarOpen ? item.label : undefined}
@@ -162,9 +162,9 @@ const OwnerLayout = () => {
           </nav>
 
           {/* User Card */}
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-[rgba(255,255,255,0.08)]">
             <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white mb-2">
-              <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-lg bg-[rgba(255,255,255,0.2)] flex items-center justify-center font-bold">
                 {getInitials(displayName)}
               </div>
               {sidebarOpen && (
@@ -177,7 +177,7 @@ const OwnerLayout = () => {
             {sidebarOpen && (
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[#B6C2E2] hover:bg-[rgba(255,255,255,0.05)] rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Logout</span>

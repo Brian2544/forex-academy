@@ -3,10 +3,10 @@ import { getIcon } from '../utils/icons';
 
 const Home = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-primary-50/30 to-secondary-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-[#070A0F] via-[#0B1220] to-[#0F1A2E]">
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-14 pb-16 bg-gradient-to-br from-white via-primary-50/40 to-secondary-50/40">
+      <section className="relative overflow-hidden pt-14 pb-16 bg-gradient-to-br from-[#070A0F] via-[#0B1220] to-[#0F1A2E]">
         {/* Decorative Background Elements */}
         <div className="absolute inset-0 bg-gradient-to-r from-primary-500/8 via-secondary-500/4 to-primary-500/8"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(245,131,32,0.12),transparent_60%)]"></div>
@@ -17,22 +17,22 @@ const Home = () => {
             
             {/* Main Hero Heading */}
             <h1 className="text-4xl md:text-5xl lg:text-5xl font-black mt-8 mb-4 leading-tight">
-              <span className="text-neutral-900">Master the </span>
+              <span className="text-[#F5F7FF]">Master the </span>
               <span className="bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent animate-pulse">Market</span>
-              <span className="text-neutral-900"> with </span>
+              <span className="text-[#F5F7FF]"> with </span>
               <span className="bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent animate-pulse">Precision</span>
               <br />
-              <span className="text-neutral-900">Remember, </span>
+              <span className="text-[#F5F7FF]">Remember, </span>
               <span className="bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent animate-pulse">Smart</span>
-              <span className="text-neutral-900"> </span>
+              <span className="text-[#F5F7FF]"> </span>
               <span className="bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent animate-pulse">Traders</span>
               <br />
-              <span className="text-neutral-900">are </span>
+              <span className="text-[#F5F7FF]">are </span>
               <span className="bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent animate-pulse">Trained!</span>
             </h1>
             
             {/* Subheading */}
-            <p className="text-lg md:text-xl text-neutral-700 mb-5 max-w-3xl mx-auto font-medium leading-relaxed">
+            <p className="text-lg md:text-xl text-[#B6C2E2] mb-5 max-w-3xl mx-auto font-medium leading-relaxed">
               Transform your trading journey with expert-led courses, live signals, and professional mentorship
             </p>
             
@@ -47,7 +47,7 @@ const Home = () => {
               </Link>
               <Link 
                 to="/courses" 
-                className="px-8 py-3 bg-white border-2 border-secondary-500 text-secondary-600 font-semibold text-lg rounded-xl hover:bg-secondary-500 hover:text-white hover:border-secondary-500 hover:shadow-lg hover:shadow-secondary-500/30 transition-all duration-300 hover:-translate-y-1"
+                className="px-8 py-3 bg-[#0B1220] border-2 border-secondary-500 text-secondary-500 font-semibold text-lg rounded-xl hover:bg-secondary-500 hover:text-[#0B1220] hover:border-secondary-500 hover:shadow-lg hover:shadow-secondary-500/30 transition-all duration-300 hover:-translate-y-1"
               >
                 Explore Courses
               </Link>
@@ -55,21 +55,21 @@ const Home = () => {
 
             {/* Trust Indicators */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-4xl mx-auto">
-              <div className="text-center p-2.5 bg-white/60 backdrop-blur-sm rounded-xl border border-primary-100 hover:border-primary-300 hover:shadow-md transition-all duration-300">
+              <div className="text-center p-2.5 bg-[#0B1220]/60 backdrop-blur-sm rounded-xl border border-[rgba(216,181,71,0.2)] hover:border-primary-300 hover:shadow-md transition-all duration-300">
                 <div className="text-3xl md:text-2xl font-black bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent mb-1">10K+</div>
-                <div className="text-xs md:text-sm font-semibold text-neutral-700">Active Professionals</div>
+                <div className="text-xs md:text-sm font-semibold text-[#B6C2E2]">Active Professionals</div>
               </div>
-              <div className="text-center p-2.5 bg-white/60 backdrop-blur-sm rounded-xl border border-secondary-100 hover:border-secondary-300 hover:shadow-md transition-all duration-300">
+              <div className="text-center p-2.5 bg-[#0B1220]/60 backdrop-blur-sm rounded-xl border border-[rgba(216,181,71,0.2)] hover:border-secondary-300 hover:shadow-md transition-all duration-300">
                 <div className="text-3xl md:text-2xl font-black bg-gradient-to-r from-secondary-500 via-primary-500 to-secondary-500 bg-clip-text text-transparent mb-1">500+</div>
-                <div className="text-xs md:text-sm font-semibold text-neutral-700">5-Star Reviews</div>
+                <div className="text-xs md:text-sm font-semibold text-[#B6C2E2]">5-Star Reviews</div>
               </div>
-              <div className="text-center p-2.5 bg-white/60 backdrop-blur-sm rounded-xl border border-primary-100 hover:border-primary-300 hover:shadow-md transition-all duration-300">
+              <div className="text-center p-2.5 bg-[#0B1220]/60 backdrop-blur-sm rounded-xl border border-[rgba(216,181,71,0.2)] hover:border-primary-300 hover:shadow-md transition-all duration-300">
                 <div className="text-3xl md:text-2xl font-black bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent mb-1">50+</div>
-                <div className="text-xs md:text-sm font-semibold text-neutral-700">Expert Instructors</div>
+                <div className="text-xs md:text-sm font-semibold text-[#B6C2E2]">Expert Instructors</div>
               </div>
-              <div className="text-center p-2.5 bg-white/60 backdrop-blur-sm rounded-xl border border-secondary-100 hover:border-secondary-300 hover:shadow-md transition-all duration-300">
+              <div className="text-center p-2.5 bg-[#0B1220]/60 backdrop-blur-sm rounded-xl border border-[rgba(216,181,71,0.2)] hover:border-secondary-300 hover:shadow-md transition-all duration-300">
                 <div className="text-3xl md:text-2xl font-black bg-gradient-to-r from-secondary-500 via-primary-500 to-secondary-500 bg-clip-text text-transparent mb-1">24/7</div>
-                <div className="text-xs md:text-sm font-semibold text-neutral-700">Support</div>
+                <div className="text-xs md:text-sm font-semibold text-[#B6C2E2]">Support</div>
               </div>
             </div>
           </div>
@@ -77,7 +77,7 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 relative bg-white">
+      <section className="py-24 relative bg-[#070A0F]">
         <div className="container mx-auto px-4">
           
 
@@ -124,17 +124,17 @@ const Home = () => {
               return (
               <div 
                 key={index}
-                className="group relative p-8 bg-white border-2 border-neutral-200 rounded-2xl hover:border-primary-300 transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/20 hover:-translate-y-2"
+                className="group relative p-8 bg-[#0B1220] border-2 border-[rgba(255,255,255,0.08)] rounded-2xl hover:border-primary-300 transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/20 hover:-translate-y-2"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 via-secondary-50/30 to-primary-50/50 opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-[rgba(216,181,71,0.1)] via-[rgba(216,181,71,0.05)] to-[rgba(216,181,71,0.1)] opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
                 <div className="relative z-10">
                   <div className="mb-4">
                     {IconComponent && (
                       <IconComponent className="w-12 h-12 text-secondary-500 group-hover:text-primary-500 transition-colors duration-300" />
                     )}
                   </div>
-                  <h3 className="text-2xl font-bold text-neutral-900 mb-3 group-hover:text-primary-600 transition-colors duration-300">{feature.title}</h3>
-                  <p className="text-neutral-600 leading-relaxed">{feature.description}</p>
+                  <h3 className="text-2xl font-bold text-[#F5F7FF] mb-3 group-hover:text-primary-600 transition-colors duration-300">{feature.title}</h3>
+                  <p className="text-[#B6C2E2] leading-relaxed">{feature.description}</p>
                 </div>
               </div>
               );
@@ -144,14 +144,14 @@ const Home = () => {
       </section>
 
       {/* Course Levels Section */}
-      <section className="py-24 bg-gradient-to-br from-primary-50/50 via-white to-secondary-50/50 relative">
+      <section className="py-24 bg-gradient-to-br from-[#0B1220] via-[#070A0F] to-[#0F1A2E] relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(245,131,32,0.05),transparent_50%)]"></div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-3xl font-bold text-neutral-900 mb-4">
+            <h2 className="text-4xl md:text-3xl font-bold text-[#F5F7FF] mb-4">
               Choose Your <span className="text-gradient">Learning Path</span>
             </h2>
-            <p className="text-xl text-neutral-600">Start from your current level and progress at your own pace</p>
+            <p className="text-xl text-[#B6C2E2]">Start from your current level and progress at your own pace</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -180,22 +180,22 @@ const Home = () => {
             ].map((course, index) => (
               <div 
                 key={index}
-                className="relative p-8 bg-white border-2 border-neutral-200 rounded-2xl hover:border-primary-300 transition-all duration-300 group hover:shadow-xl hover:shadow-primary-500/20 hover:-translate-y-2"
+                className="relative p-8 bg-[#0B1220] border-2 border-[rgba(255,255,255,0.08)] rounded-2xl hover:border-primary-300 transition-all duration-300 group hover:shadow-xl hover:shadow-primary-500/20 hover:-translate-y-2"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-secondary-100 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-primary-100 to-transparent rounded-tr-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[rgba(216,181,71,0.2)] to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-[rgba(216,181,71,0.2)] to-transparent rounded-tr-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 
                 <div className="relative z-10">
                   <div className={`inline-block px-4 py-2 ${
-                    index === 0 ? 'bg-secondary-100 border-secondary-300 text-secondary-700' : 
-                    index === 1 ? 'bg-primary-100 border-primary-300 text-primary-700' : 
-                    'bg-gradient-to-r from-primary-100 to-secondary-100 border-primary-300 text-neutral-900'
+                    index === 0 ? 'bg-[rgba(216,181,71,0.2)] border-secondary-300 text-secondary-500' : 
+                    index === 1 ? 'bg-[rgba(216,181,71,0.2)] border-primary-300 text-primary-500' : 
+                    'bg-gradient-to-r from-[rgba(216,181,71,0.2)] to-[rgba(216,181,71,0.2)] border-primary-300 text-[#F5F7FF]'
                   } border rounded-full mb-6 font-semibold`}>
                     <span>{course.level}</span>
                   </div>
                   
-                  <h3 className="text-3xl font-bold text-neutral-900 mb-4 group-hover:text-primary-600 transition-colors duration-300">{course.level} Course</h3>
-                  <p className="text-neutral-600 mb-6 leading-relaxed">{course.description}</p>
+                  <h3 className="text-3xl font-bold text-[#F5F7FF] mb-4 group-hover:text-primary-600 transition-colors duration-300">{course.level} Course</h3>
+                  <p className="text-[#B6C2E2] mb-6 leading-relaxed">{course.description}</p>
                   
                   <ul className="space-y-3 mb-8">
                     {course.topics.map((topic, i) => {
@@ -207,7 +207,7 @@ const Home = () => {
                             index === 1 ? 'text-primary-500' : 
                             'text-secondary-500'
                           } mr-3 mt-1 flex-shrink-0`} />}
-                          <span className="text-neutral-700">{topic}</span>
+                          <span className="text-[#B6C2E2]">{topic}</span>
                         </li>
                       );
                     })}
@@ -238,11 +238,11 @@ const Home = () => {
       </section>
 
       {/* Social Proof Section */}
-      <section className="py-24 bg-gradient-to-br from-secondary-50/50 via-white to-primary-50/50 relative">
+      <section className="py-24 bg-gradient-to-br from-[#0F1A2E] via-[#070A0F] to-[#0B1220] relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(164,205,57,0.05),transparent_50%)]"></div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-2xl font-bold text-neutral-900 mb-4">
+            <h2 className="text-4xl md:text-2xl font-bold text-[#F5F7FF] mb-4">
             <span className="text-gradient">Reviews</span>
             </h2>
          
@@ -274,7 +274,7 @@ const Home = () => {
               return (
                 <div 
                   key={index}
-                  className="p-8 bg-white border-2 border-neutral-200 rounded-2xl hover:border-primary-300 transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/20 hover:-translate-y-2"
+                  className="p-8 bg-[#0B1220] border-2 border-[rgba(255,255,255,0.08)] rounded-2xl hover:border-primary-300 transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/20 hover:-translate-y-2"
                 >
                   <div className="flex items-center gap-1 mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
@@ -285,12 +285,12 @@ const Home = () => {
                       ) : null
                     ))}
                   </div>
-                  <p className="text-neutral-700 mb-6 leading-relaxed">"{testimonial.text}"</p>
+                  <p className="text-[#B6C2E2] mb-6 leading-relaxed">"{testimonial.text}"</p>
                   <div className="flex items-center gap-4">
                     <div className={`w-12 h-12 ${
-                      index === 0 ? 'bg-gradient-to-br from-primary-100 to-secondary-100' :
-                      index === 1 ? 'bg-gradient-to-br from-secondary-100 to-primary-100' :
-                      'bg-gradient-to-br from-primary-100 to-secondary-100'
+                      index === 0 ? 'bg-gradient-to-br from-[rgba(216,181,71,0.2)] to-[rgba(216,181,71,0.2)]' :
+                      index === 1 ? 'bg-gradient-to-br from-[rgba(216,181,71,0.2)] to-[rgba(216,181,71,0.2)]' :
+                      'bg-gradient-to-br from-[rgba(216,181,71,0.2)] to-[rgba(216,181,71,0.2)]'
                     } rounded-full flex items-center justify-center border-2 ${
                       index === 0 ? 'border-primary-300' :
                       index === 1 ? 'border-secondary-300' :
@@ -303,8 +303,8 @@ const Home = () => {
                       }`} />}
                     </div>
                     <div>
-                      <div className="font-semibold text-neutral-900">{testimonial.name}</div>
-                      <div className="text-sm text-neutral-600">{testimonial.role}</div>
+                      <div className="font-semibold text-[#F5F7FF]">{testimonial.name}</div>
+                      <div className="text-sm text-[#B6C2E2]">{testimonial.role}</div>
                     </div>
                   </div>
                 </div>
