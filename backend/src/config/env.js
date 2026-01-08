@@ -21,7 +21,7 @@ export const config = {
   },
   paystack: {
     secretKey: process.env.PAYSTACK_SECRET_KEY,
-    webhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET,
+    webhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET || process.env.PAYSTACK_SECRET_KEY, // Fallback to secret key if webhook secret not set
   },
   appBaseUrl: process.env.APP_BASE_URL || 'http://localhost:3000',
 };

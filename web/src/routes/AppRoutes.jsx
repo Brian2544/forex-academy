@@ -143,6 +143,7 @@ const AppRoutes = () => {
         {/* Billing Route - Protected but no role check */}
         <Route path="/billing" element={<Billing />} />
         <Route path="/billing/success" element={<Billing />} />
+        <Route path="/billing/callback" element={<Billing />} />
       </Route>
 
       {/* 404 */}

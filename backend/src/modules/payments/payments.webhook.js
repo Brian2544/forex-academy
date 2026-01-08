@@ -78,7 +78,77 @@ export const handleWebhook = asyncHandler(async (req, res) => {
     payload_json: JSON.stringify(event),
   });
 
-  // Handle charge.success event
+  // Handle subscription.create event
+  if (event.event === 'subscription.create') {
+    const subscriptionData = event.data;
+    const customerCode = subscriptionData?.customer?.customer_code;
+    const subscriptionCode = subscriptionData?.subscription_code;
+    const planCode = subscriptionData?.plan?.plan_code;
+
+    if (!customerCode || !subscriptionCode || !planCode) {
+      logger.warn('Missing subscription data in webhook event');
+      return res.json({ success: true });
+    }
+
+    // Find user by customer code
+    const { data: subscription } = await supabaseAdmin
+      .from('subscriptions')
+      .select('user_id, plan_id')
+      .eq('paystack_customer_code', customerCode)
+      .maybeSingle();
+
+    if (subscription) {
+      await supabaseAdmin
+        .from('subscriptions')
+        .update({
+          paystack_subscription_code: subscriptionCode,
+          status: 'active',
+          current_period_end: subscriptionData.next_payment_date 
+            ? new Date(subscriptionData.next_payment_date).toISOString()
+            : null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', subscription.user_id);
+
+      logger.info(`Subscription created for user ${subscription.user_id}`);
+    }
+  }
+
+  // Handle invoice.payment_failed event
+  if (event.event === 'invoice.payment_failed') {
+    const subscriptionCode = event.data?.subscription?.subscription_code;
+
+    if (subscriptionCode) {
+      await supabaseAdmin
+        .from('subscriptions')
+        .update({
+          status: 'past_due',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('paystack_subscription_code', subscriptionCode);
+
+      logger.info(`Subscription marked as past_due: ${subscriptionCode}`);
+    }
+  }
+
+  // Handle subscription.disable or subscription.not_renew event
+  if (event.event === 'subscription.disable' || event.event === 'subscription.not_renew') {
+    const subscriptionCode = event.data?.subscription_code || event.data?.subscription?.subscription_code;
+
+    if (subscriptionCode) {
+      await supabaseAdmin
+        .from('subscriptions')
+        .update({
+          status: 'canceled',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('paystack_subscription_code', subscriptionCode);
+
+      logger.info(`Subscription canceled: ${subscriptionCode}`);
+    }
+  }
+
+  // Handle charge.success event (for one-time payments and subscription renewals)
   if (event.event === 'charge.success' || event.event === 'transaction.charge.success') {
     const reference = event.data?.reference;
 
@@ -98,49 +168,92 @@ export const handleWebhook = asyncHandler(async (req, res) => {
         const userId = metadata.userId;
         const planId = metadata.planId;
 
-        if (!userId || !planId) {
-          logger.warn('Missing userId or planId in transaction metadata');
-          return res.json({ success: true });
+        // Store payment record
+        if (userId && planId) {
+          await supabaseAdmin.from('payments').upsert({
+            user_id: userId,
+            plan_id: planId,
+            reference: transaction.reference,
+            amount_kobo: transaction.amount,
+            currency: transaction.currency,
+            status: 'success',
+            provider: 'paystack',
+            metadata: transaction,
+          }, { onConflict: 'reference' });
         }
 
-        // Get plan to determine period end
-        const { data: plan } = await supabaseAdmin
-          .from('plans')
-          .select('interval')
-          .eq('id', planId)
-          .single();
+        // If this is a subscription renewal (has subscription_code in transaction)
+        if (transaction.authorization?.reusable && transaction.customer) {
+          const { data: subscription } = await supabaseAdmin
+            .from('subscriptions')
+            .select('*')
+            .eq('paystack_customer_code', transaction.customer.customer_code)
+            .maybeSingle();
 
-        // Calculate period end
-        let currentPeriodEnd = new Date();
-        if (plan?.interval === 'monthly') {
-          currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1);
-        } else {
-          // one_time - set to far future or null
-          currentPeriodEnd = new Date('2099-12-31');
-        }
+          if (subscription) {
+            // Update subscription period end
+            const { data: plan } = await supabaseAdmin
+              .from('plans')
+              .select('interval')
+              .eq('id', subscription.plan_id)
+              .single();
 
-        // Upsert subscription
-        const { error: subError } = await supabaseAdmin
-          .from('subscriptions')
-          .upsert(
-            {
-              user_id: userId,
-              plan_id: planId,
-              status: 'active',
-              provider: 'paystack',
-              provider_ref: reference,
-              current_period_end: currentPeriodEnd.toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-            {
-              onConflict: 'user_id',
+            let currentPeriodEnd = new Date();
+            if (plan?.interval === 'monthly') {
+              currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1);
+            } else {
+              currentPeriodEnd = new Date('2099-12-31');
             }
-          );
 
-        if (subError) {
-          logger.error('Subscription upsert error:', subError);
-        } else {
-          logger.info(`Subscription activated for user ${userId}`);
+            await supabaseAdmin
+              .from('subscriptions')
+              .update({
+                status: 'active',
+                current_period_end: currentPeriodEnd.toISOString(),
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', subscription.id);
+
+            logger.info(`Subscription renewed for user ${subscription.user_id}`);
+          }
+        } else if (userId && planId) {
+          // One-time payment
+          const { data: plan } = await supabaseAdmin
+            .from('plans')
+            .select('interval')
+            .eq('id', planId)
+            .single();
+
+          let currentPeriodEnd = new Date();
+          if (plan?.interval === 'monthly') {
+            currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1);
+          } else {
+            currentPeriodEnd = new Date('2099-12-31');
+          }
+
+          // Upsert subscription
+          const { error: subError } = await supabaseAdmin
+            .from('subscriptions')
+            .upsert(
+              {
+                user_id: userId,
+                plan_id: planId,
+                status: 'active',
+                provider: 'paystack',
+                provider_ref: reference,
+                current_period_end: currentPeriodEnd.toISOString(),
+                updated_at: new Date().toISOString(),
+              },
+              {
+                onConflict: 'user_id',
+              }
+            );
+
+          if (subError) {
+            logger.error('Subscription upsert error:', subError);
+          } else {
+            logger.info(`Subscription activated for user ${userId}`);
+          }
         }
       }
     } catch (error) {

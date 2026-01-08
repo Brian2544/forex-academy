@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import Loader from '../common/Loader';
 
 const AdminRoute = ({ children, requireSubscription = false }) => {
-  const { user, role, subscriptionStatus, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -18,17 +18,15 @@ const AdminRoute = ({ children, requireSubscription = false }) => {
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
-  const isAdmin = role && ['ADMIN', 'SUPER_ADMIN', 'OWNER', 'INSTRUCTOR'].includes(role);
+  const role = profile?.role;
+  const isAdmin = role && ['ADMIN', 'SUPER_ADMIN', 'OWNER', 'INSTRUCTOR', 'CONTENT_ADMIN', 'SUPPORT_ADMIN', 'FINANCE_ADMIN'].includes(role);
 
   if (!isAdmin) {
     return <Navigate to="/student/dashboard" replace />;
   }
 
-  // Check subscription if required (for premium admin features)
-  if (requireSubscription && subscriptionStatus !== 'ACTIVE') {
-    return <Navigate to="/pricing" replace />;
-  }
-
+  // Admin and owner roles bypass subscription requirement
+  // Note: requireSubscription flag is deprecated - admins always have access
   return children;
 };
 

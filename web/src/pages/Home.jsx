@@ -3,14 +3,14 @@ import { getIcon } from '../utils/icons';
 
 const Home = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#070A0F] via-[#0B1220] to-[#0F1A2E]">
+    <div className="min-h-screen bg-[#0A0E1A]">
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-14 pb-16 bg-gradient-to-br from-[#070A0F] via-[#0B1220] to-[#0F1A2E]">
-        {/* Decorative Background Elements */}
-        <div className="absolute inset-0 bg-gradient-to-r from-primary-500/8 via-secondary-500/4 to-primary-500/8"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(245,131,32,0.12),transparent_60%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(164,205,57,0.10),transparent_60%)]"></div>
+      <section className="relative overflow-hidden pt-14 pb-16 bg-[#0A0E1A]">
+        {/* Decorative Background Elements - Dark only */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0A0E1A] via-[#0D1324] to-[#0A0E1A]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(10,14,26,0.3),transparent_60%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(13,19,36,0.2),transparent_60%)]"></div>
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-5xl mx-auto text-center">
@@ -77,7 +77,7 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 relative bg-[#070A0F]">
+      <section className="py-24 relative bg-[#0A0E1A]">
         <div className="container mx-auto px-4">
           
 
@@ -144,8 +144,8 @@ const Home = () => {
       </section>
 
       {/* Course Levels Section */}
-      <section className="py-24 bg-gradient-to-br from-[#0B1220] via-[#070A0F] to-[#0F1A2E] relative">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(245,131,32,0.05),transparent_50%)]"></div>
+      <section className="py-24 bg-[#0A0E1A] relative">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(216,181,71,0.05),transparent_50%)]"></div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-3xl font-bold text-[#F5F7FF] mb-4">
@@ -238,8 +238,8 @@ const Home = () => {
       </section>
 
       {/* Social Proof Section */}
-      <section className="py-24 bg-gradient-to-br from-[#0F1A2E] via-[#070A0F] to-[#0B1220] relative">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(164,205,57,0.05),transparent_50%)]"></div>
+      <section className="py-24 bg-[#0A0E1A] relative">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(216,181,71,0.05),transparent_50%)]"></div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-2xl font-bold text-[#F5F7FF] mb-4">

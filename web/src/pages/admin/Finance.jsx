@@ -58,12 +58,12 @@ const Finance = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Finance</h1>
-          <p className="text-gray-600 mt-1">Manage payments and revenue</p>
+          <h1 className="text-3xl font-bold text-[#F5F7FF]">Finance</h1>
+          <p className="text-[#B6C2E2] mt-1">Manage payments and revenue</p>
         </div>
         <button
           onClick={() => exportMutation.mutate()}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          className="flex items-center gap-2 px-4 py-2 border border-[rgba(255,255,255,0.08)] rounded-lg hover:bg-[rgba(255,255,255,0.05)] text-[#B6C2E2]"
         >
           <Download className="w-5 h-5" />
           Export CSV
@@ -72,26 +72,26 @@ const Finance = () => {
 
       {/* Totals */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <p className="text-sm text-gray-600">Total Revenue</p>
-          <p className="text-2xl font-bold text-gray-900 mt-2">${totals.total?.toFixed(2) || '0.00'}</p>
+        <div className="bg-[#0D1324] rounded-lg shadow-sm border border-[rgba(255,255,255,0.08)] p-6">
+          <p className="text-sm text-[#B6C2E2]">Total Revenue</p>
+          <p className="text-2xl font-bold text-[#F5F7FF] mt-2">${totals.total?.toFixed(2) || '0.00'}</p>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <p className="text-sm text-gray-600">Completed</p>
+        <div className="bg-[#0D1324] rounded-lg shadow-sm border border-[rgba(255,255,255,0.08)] p-6">
+          <p className="text-sm text-[#B6C2E2]">Completed</p>
           <p className="text-2xl font-bold text-green-600 mt-2">${totals.completed?.toFixed(2) || '0.00'}</p>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <p className="text-sm text-gray-600">Pending</p>
+        <div className="bg-[#0D1324] rounded-lg shadow-sm border border-[rgba(255,255,255,0.08)] p-6">
+          <p className="text-sm text-[#B6C2E2]">Pending</p>
           <p className="text-2xl font-bold text-yellow-600 mt-2">${totals.pending?.toFixed(2) || '0.00'}</p>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <p className="text-sm text-gray-600">Failed</p>
+        <div className="bg-[#0D1324] rounded-lg shadow-sm border border-[rgba(255,255,255,0.08)] p-6">
+          <p className="text-sm text-[#B6C2E2]">Failed</p>
           <p className="text-2xl font-bold text-red-600 mt-2">${totals.failed?.toFixed(2) || '0.00'}</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div className="bg-[#0D1324] rounded-lg shadow-sm border border-[rgba(255,255,255,0.08)] p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <select
             value={statusFilter}
@@ -99,7 +99,7 @@ const Finance = () => {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="px-4 py-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0A0E1A] text-[#F5F7FF]"
           >
             <option value="">All Status</option>
             <option value="completed">Completed</option>
@@ -113,7 +113,7 @@ const Finance = () => {
               setProviderFilter(e.target.value);
               setPage(1);
             }}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="px-4 py-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0A0E1A] text-[#F5F7FF]"
           >
             <option value="">All Providers</option>
             <option value="flutterwave">Flutterwave</option>
@@ -128,7 +128,7 @@ const Finance = () => {
               setStartDate(e.target.value);
               setPage(1);
             }}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="px-4 py-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0A0E1A] text-[#F5F7FF]"
           />
           <input
             type="date"
@@ -137,13 +137,13 @@ const Finance = () => {
               setEndDate(e.target.value);
               setPage(1);
             }}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="px-4 py-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0A0E1A] text-[#F5F7FF]"
           />
         </div>
       </div>
 
       {/* Payments Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-[#0D1324] rounded-lg shadow-sm border border-[rgba(255,255,255,0.08)] overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
@@ -151,34 +151,34 @@ const Finance = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-[#121B33] border-b border-[rgba(255,255,255,0.08)]">
                 <tr>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Student</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Amount</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Provider</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Status</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Date</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Reference</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Actions</th>
+                  <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Student</th>
+                  <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Amount</th>
+                  <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Provider</th>
+                  <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Status</th>
+                  <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Date</th>
+                  <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Reference</th>
+                  <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {payments.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-12 text-gray-500">
+                    <td colSpan={7} className="text-center py-12 text-[#B6C2E2]">
                       No payments found
                     </td>
                   </tr>
                 ) : (
                   payments.map((payment) => (
-                    <tr key={payment.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-4 px-6 text-sm text-gray-900">
+                    <tr key={payment.id} className="border-b border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.05)]">
+                      <td className="py-4 px-6 text-sm text-[#F5F7FF]">
                         {payment.profile?.first_name} {payment.profile?.last_name}
                       </td>
-                      <td className="py-4 px-6 text-sm font-medium text-gray-900">
+                      <td className="py-4 px-6 text-sm font-medium text-[#F5F7FF]">
                         ${parseFloat(payment.amount || 0).toFixed(2)} {payment.currency}
                       </td>
-                      <td className="py-4 px-6 text-sm text-gray-600 capitalize">{payment.provider}</td>
+                      <td className="py-4 px-6 text-sm text-[#B6C2E2] capitalize">{payment.provider}</td>
                       <td className="py-4 px-6">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
@@ -191,10 +191,10 @@ const Finance = () => {
                           {payment.status}
                         </span>
                       </td>
-                      <td className="py-4 px-6 text-sm text-gray-600">
+                      <td className="py-4 px-6 text-sm text-[#B6C2E2]">
                         {format(new Date(payment.created_at), 'MMM d, yyyy')}
                       </td>
-                      <td className="py-4 px-6 text-sm text-gray-600 font-mono">{payment.reference || 'N/A'}</td>
+                      <td className="py-4 px-6 text-sm text-[#B6C2E2] font-mono">{payment.reference || 'N/A'}</td>
                       <td className="py-4 px-6">
                         {payment.status !== 'completed' && (
                           <button

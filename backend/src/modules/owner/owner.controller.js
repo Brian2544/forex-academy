@@ -61,12 +61,43 @@ export const getUsers = asyncHandler(async (req, res) => {
   const { data: authUsersData } = await supabaseAdmin.auth.admin.listUsers();
   const authUsers = authUsersData?.users || [];
 
-  // Map emails to users and apply email search filter if needed
+  // Get subscription data for all users (including trial info)
+  const { data: subscriptions } = await supabaseAdmin
+    .from('subscriptions')
+    .select('user_id, status, updated_at, trial_ends_at, current_period_end')
+    .in('user_id', userIds);
+
+  // Get latest subscription audit for each user (to show who activated)
+  const { data: latestAudits } = await supabaseAdmin
+    .from('subscription_audit')
+    .select('target_id, actor_name, actor_role, created_at, new_status')
+    .in('target_id', userIds)
+    .eq('new_status', 'active')
+    .order('created_at', { ascending: false });
+
+  // Group audits by target_id to get the latest one per user
+  const auditMap = {};
+  latestAudits?.forEach(audit => {
+    if (!auditMap[audit.target_id]) {
+      auditMap[audit.target_id] = audit;
+    }
+  });
+
+  // Map emails, subscriptions, and audit info to users
   let usersWithEmail = users.map(user => {
     const authUser = authUsers.find(au => au.id === user.id);
+    const subscription = subscriptions?.find(s => s.user_id === user.id);
+    const audit = auditMap[user.id];
+    
     return {
       ...user,
       email: authUser?.email || 'N/A',
+      subscription_status: subscription?.status || 'inactive',
+      subscription_override_by: audit ? {
+        name: audit.actor_name,
+        role: audit.actor_role,
+        at: audit.created_at,
+      } : null,
     };
   });
 

@@ -27,21 +27,30 @@ const Pricing = () => {
     }
   };
 
-  const handleSubscribe = async (plan) => {
+  const handleSubscribe = async (planKey) => {
     if (!isAuthenticated) {
       toast.error('Please login to subscribe');
       return;
     }
 
-    if (plan === 'free') {
+    if (planKey === 'free') {
       toast.success('Free plan is already active!');
       return;
     }
 
+    // Find plan ID from plans object
+    const plan = plans[planKey];
+    if (!plan || !plan.id) {
+      toast.error('Plan not found');
+      return;
+    }
+
     try {
-      const { data } = await paymentService.initiatePayment(plan);
-      if (data.paymentLink) {
-        window.location.href = data.paymentLink;
+      const { data } = await paymentService.initiatePayment(plan.id);
+      if (data.success && data.data?.authorization_url) {
+        window.location.href = data.data.authorization_url;
+      } else {
+        toast.error('Failed to initialize payment');
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Payment initialization failed');

@@ -320,3 +320,400 @@ export const blogPostsHandlers = createCRUDHandlers('blog_posts');
 export const marketAnalysisHandlers = createCRUDHandlers('market_analysis');
 export const testimonialsHandlers = createCRUDHandlers('testimonials');
 
+/**
+ * Get list of students with pagination and search
+ * Allowed: admin, super_admin, owner
+ */
+export const getStudents = asyncHandler(async (req, res) => {
+  const { search = '', country = '', status = '', page = 1, limit = 20 } = req.query;
+  const pageNum = parseInt(page, 10);
+  const limitNum = parseInt(limit, 10);
+  const offset = (pageNum - 1) * limitNum;
+
+  // Build query - only students
+  let query = supabaseAdmin
+    .from('profiles')
+    .select('id, first_name, last_name, country, created_at', { count: 'exact' })
+    .eq('role', 'student')
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limitNum - 1);
+
+  // Add search filter
+  if (search && search.trim()) {
+    query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%`);
+  }
+
+  // Add country filter
+  if (country && country.trim()) {
+    query = query.eq('country', country);
+  }
+
+  const { data: students, error, count } = await query;
+
+  if (error) {
+    logger.error('Error fetching students:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch students',
+    });
+  }
+
+  if (!students || students.length === 0) {
+    return res.json({
+      success: true,
+      data: [],
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: 0,
+        pages: 0,
+      },
+    });
+  }
+
+  // Get emails from auth.users
+  const studentIds = students.map(s => s.id);
+  const { data: authUsersData } = await supabaseAdmin.auth.admin.listUsers();
+  const authUsers = authUsersData?.users || [];
+
+  // Get subscription data (including trial info)
+  const { data: subscriptions } = await supabaseAdmin
+    .from('subscriptions')
+    .select('user_id, status, trial_ends_at, current_period_end')
+    .in('user_id', studentIds);
+
+  // Get payment totals (if payments table exists)
+  let payments = [];
+  try {
+    const { data: paymentsData, error: paymentsError } = await supabaseAdmin
+      .from('payments')
+      .select('user_id, amount')
+      .in('user_id', studentIds);
+    
+    if (!paymentsError && paymentsData) {
+      payments = paymentsData;
+    }
+  } catch (err) {
+    // Gracefully handle if table doesn't exist
+    logger.warn('Payments table query failed (may not exist):', err.message);
+    payments = [];
+  }
+
+  // Calculate total paid per user
+  const totalPaidMap = {};
+  payments?.forEach(payment => {
+    if (!totalPaidMap[payment.user_id]) {
+      totalPaidMap[payment.user_id] = 0;
+    }
+    totalPaidMap[payment.user_id] += parseFloat(payment.amount || 0);
+  });
+
+  // Map emails, subscriptions, and totals to students
+  let studentsWithData = students.map(student => {
+    const authUser = authUsers.find(au => au.id === student.id);
+    const subscription = subscriptions?.find(s => s.user_id === student.id);
+    const totalPaid = totalPaidMap[student.id] || 0;
+
+    let subscriptionStatus = subscription?.status || 'inactive';
+    
+    // Apply status filter if provided
+    if (status && status.trim() && subscriptionStatus !== status) {
+      return null; // Filter out
+    }
+
+    const email = authUser?.email || 'N/A';
+
+    // Apply email search filter if search term provided and not already filtered by name
+    if (search && search.trim()) {
+      const searchLower = search.toLowerCase();
+      const matchesName = (student.first_name || '').toLowerCase().includes(searchLower) ||
+                         (student.last_name || '').toLowerCase().includes(searchLower);
+      const matchesEmail = email.toLowerCase().includes(searchLower);
+      if (!matchesName && !matchesEmail) {
+        return null; // Filter out
+      }
+    }
+
+    return {
+      ...student,
+      email,
+      subscription_status: subscriptionStatus,
+      total_paid: totalPaid,
+    };
+  }).filter(Boolean); // Remove nulls from filtering
+
+  // Recalculate total if status filter was applied
+  const finalTotal = status ? studentsWithData.length : (count || 0);
+
+  res.json({
+    success: true,
+    data: studentsWithData,
+    pagination: {
+      page: pageNum,
+      limit: limitNum,
+      total: finalTotal,
+      pages: Math.ceil(finalTotal / limitNum) || 1,
+    },
+  });
+});
+
+/**
+ * Get student detail by ID
+ * Allowed: admin, super_admin, owner
+ */
+export const getStudentById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  // Get profile
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from('profiles')
+    .select('*')
+    .eq('id', id)
+    .eq('role', 'student')
+    .single();
+
+  if (profileError || !profile) {
+    return res.status(404).json({
+      success: false,
+      message: 'Student not found',
+    });
+  }
+
+  // Get email
+  const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(id);
+  profile.email = authUser?.user?.email || 'N/A';
+
+  // Get subscriptions
+  const { data: subscriptions } = await supabaseAdmin
+    .from('subscriptions')
+    .select('*, plan:plans(*)')
+    .eq('user_id', id)
+    .order('created_at', { ascending: false });
+
+  // Format subscriptions
+  const formattedSubscriptions = subscriptions?.map(sub => ({
+    id: sub.id,
+    plan_type: sub.plan?.name || 'N/A',
+    status: sub.status,
+    started_at: sub.created_at,
+    expires_at: sub.current_period_end,
+  })) || [];
+
+  // Get payments
+  let payments = [];
+  try {
+    const { data: paymentsData, error: paymentsError } = await supabaseAdmin
+      .from('payments')
+      .select('*')
+      .eq('user_id', id)
+      .order('created_at', { ascending: false });
+    
+    if (!paymentsError && paymentsData) {
+      payments = paymentsData;
+    }
+  } catch (err) {
+    // Gracefully handle if table doesn't exist
+    logger.warn('Payments table query failed (may not exist):', err.message);
+    payments = [];
+  }
+
+  // Calculate stats
+  const totalPaid = payments?.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0;
+  const activeSubscriptions = formattedSubscriptions.filter(s => s.status === 'active').length;
+
+  res.json({
+    success: true,
+    data: {
+      profile,
+      subscriptions: formattedSubscriptions,
+      payments: payments || [],
+      groups: [],
+      tickets: [],
+      stats: {
+        totalPaid,
+        totalPayments: payments?.length || 0,
+        activeSubscriptions,
+      },
+    },
+  });
+});
+
+/**
+ * Override student subscription status (owner/admin only)
+ * Allowed: owner, admin, super_admin
+ */
+export const overrideSubscription = asyncHandler(async (req, res) => {
+  const { studentUserId } = req.params;
+  const { active, reason, trialDays } = req.body;
+  const currentUserId = req.userId;
+
+  // Validate input
+  if (trialDays !== undefined && trialDays !== null) {
+    // Granting trial - validate trialDays
+    if (![1, 7, 30].includes(trialDays)) {
+      return res.status(400).json({
+        success: false,
+        message: 'trialDays must be 1, 7, or 30',
+      });
+    }
+  } else if (typeof active !== 'boolean') {
+    return res.status(400).json({
+      success: false,
+      message: 'active must be a boolean when not granting trial',
+    });
+  }
+
+  // Get current user role
+  const { data: currentUser } = await supabaseAdmin
+    .from('profiles')
+    .select('role, first_name, last_name, email')
+    .eq('id', currentUserId)
+    .single();
+
+  if (!currentUser) {
+    return res.status(403).json({
+      success: false,
+      message: 'Current user profile not found',
+    });
+  }
+
+  const actorRole = currentUser.role?.toLowerCase();
+
+  // Check permissions - owner and admins can override
+  if (!['owner', 'admin', 'super_admin'].includes(actorRole)) {
+    return res.status(403).json({
+      success: false,
+      message: 'Insufficient permissions to override subscription',
+    });
+  }
+
+  // Get target user profile
+  const { data: targetUser, error: targetError } = await supabaseAdmin
+    .from('profiles')
+    .select('id, role, first_name, last_name, email')
+    .eq('id', studentUserId)
+    .single();
+
+  if (targetError || !targetUser) {
+    return res.status(404).json({
+      success: false,
+      message: 'Student not found',
+    });
+  }
+
+  // Only allow overriding subscriptions for students
+  if (targetUser.role?.toLowerCase() !== 'student') {
+    return res.status(400).json({
+      success: false,
+      message: 'Can only override subscriptions for students',
+    });
+  }
+
+  // Get current subscription
+  const { data: currentSubscription } = await supabaseAdmin
+    .from('subscriptions')
+    .select('*')
+    .eq('user_id', studentUserId)
+    .maybeSingle();
+
+  const oldStatus = currentSubscription?.status || 'inactive';
+  let newStatus = active ? 'active' : 'inactive';
+  let trialEndsAt = null;
+
+  // Handle trial granting
+  if (trialDays !== undefined && trialDays !== null) {
+    // Granting trial - set trial_ends_at
+    const trialEndDate = new Date();
+    trialEndDate.setDate(trialEndDate.getDate() + trialDays);
+    trialEndsAt = trialEndDate.toISOString();
+    newStatus = 'active'; // Trial grants active access
+  }
+
+  // Update or create subscription
+  const subscriptionData = {
+    user_id: studentUserId,
+    status: newStatus,
+    updated_at: new Date().toISOString(),
+  };
+
+  // Set trial_ends_at if granting trial
+  if (trialEndsAt) {
+    subscriptionData.trial_ends_at = trialEndsAt;
+  }
+
+  // If activating (or granting trial), set a default plan if none exists
+  if ((active || trialEndsAt) && !currentSubscription?.plan_id) {
+    // Get a default plan (one-time access)
+    const { data: defaultPlan } = await supabaseAdmin
+      .from('plans')
+      .select('id')
+      .eq('is_active', true)
+      .eq('interval', 'one_time')
+      .limit(1)
+      .maybeSingle();
+
+    if (defaultPlan) {
+      subscriptionData.plan_id = defaultPlan.id;
+      // For trials, set current_period_end to trial end; for regular activation, set far future
+      subscriptionData.current_period_end = trialEndsAt || new Date('2099-12-31').toISOString();
+    }
+  } else if (currentSubscription?.plan_id) {
+    subscriptionData.plan_id = currentSubscription.plan_id;
+    // Preserve existing current_period_end unless granting trial
+    subscriptionData.current_period_end = trialEndsAt || currentSubscription.current_period_end;
+  }
+
+  const { data: updatedSubscription, error: updateError } = await supabaseAdmin
+    .from('subscriptions')
+    .upsert(subscriptionData, {
+      onConflict: 'user_id',
+    })
+    .select()
+    .single();
+
+  if (updateError) {
+    logger.error('Subscription override error:', updateError);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update subscription',
+    });
+  }
+
+  // Log to subscription_audit table
+  try {
+    await supabaseAdmin
+      .from('subscription_audit')
+      .insert({
+        actor_id: currentUserId,
+        actor_role: actorRole,
+        actor_name: `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email,
+        target_id: studentUserId,
+        target_name: `${targetUser.first_name || ''} ${targetUser.last_name || ''}`.trim() || targetUser.email,
+        old_status: oldStatus,
+        new_status: newStatus,
+        reason: reason || null,
+        trial_days: trialDays || null,
+        trial_ends_at: trialEndsAt,
+        created_at: new Date().toISOString(),
+      });
+  } catch (auditError) {
+    // Log error but don't fail the request
+    logger.error('Failed to log subscription audit:', auditError);
+  }
+
+  const action = trialDays ? `granted ${trialDays}-day trial` : (active ? 'activated' : 'deactivated');
+  logger.info(`User ${currentUserId} (${actorRole}) ${action} subscription for student ${studentUserId}`);
+
+  res.json({
+    success: true,
+    data: {
+      subscription: updatedSubscription,
+      actor: {
+        id: currentUserId,
+        role: actorRole,
+        name: `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email,
+      },
+    },
+  });
+});
+

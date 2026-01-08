@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../services/api';
-import { Search, Eye, Edit, DollarSign, Mail, MapPin, Calendar } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { Search, Eye, Edit, DollarSign, Mail, MapPin, Calendar, CheckCircle, XCircle, Gift } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
@@ -10,10 +11,25 @@ const Students = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user, loading: authLoading } = useAuth();
   const [search, setSearch] = useState('');
   const [country, setCountry] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
+  const [trialMenuOpen, setTrialMenuOpen] = useState(null);
+  
+  // Close trial menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (trialMenuOpen && !event.target.closest('.relative')) {
+        setTrialMenuOpen(null);
+      }
+    };
+    if (trialMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [trialMenuOpen]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-students', search, country, status, page],
@@ -24,7 +40,28 @@ const Students = () => {
       if (status) params.append('status', status);
       const response = await api.get(`/admin/students?${params}`);
       return response.data;
-    }
+    },
+    enabled: !authLoading && !!user, // Only run query when auth is ready and user exists
+  });
+
+  const overrideSubscriptionMutation = useMutation({
+    mutationFn: async ({ studentUserId, active, reason, trialDays }) => {
+      const response = await api.post(`/admin/subscription/override/${studentUserId}`, { active, reason, trialDays });
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-students'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-student'] });
+      if (variables.trialDays) {
+        toast.success(`${variables.trialDays}-day trial granted successfully`);
+      } else {
+        toast.success(`Subscription ${variables.active ? 'activated' : 'deactivated'} successfully`);
+      }
+    },
+    onError: (error) => {
+      const message = error.response?.data?.message || 'Failed to update subscription';
+      toast.error(message);
+    },
   });
 
   if (id) {
@@ -65,7 +102,7 @@ const Students = () => {
               setCountry(e.target.value);
               setPage(1);
             }}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="px-4 py-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0D1324] text-[#F5F7FF]"
           >
             <option value="">All Countries</option>
             <option value="United States">United States</option>
@@ -82,7 +119,7 @@ const Students = () => {
               setStatus(e.target.value);
               setPage(1);
             }}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="px-4 py-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0D1324] text-[#F5F7FF]"
           >
             <option value="">All Status</option>
             <option value="active">Active</option>
@@ -151,12 +188,74 @@ const Students = () => {
                           {student.created_at ? format(new Date(student.created_at), 'MMM d, yyyy') : 'N/A'}
                         </td>
                         <td className="py-4 px-6">
-                          <button
-                            onClick={() => navigate(`/admin/students/${student.id}`)}
-                            className="text-orange-600 hover:text-orange-700 text-sm font-medium"
-                          >
-                            View
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => navigate(`/admin/students/${student.id}`)}
+                              className="text-orange-600 hover:text-orange-700 text-sm font-medium"
+                            >
+                              View
+                            </button>
+                            {student.subscription_status === 'active' ? (
+                              <button
+                                onClick={() => overrideSubscriptionMutation.mutate({ studentUserId: student.id, active: false })}
+                                disabled={overrideSubscriptionMutation.isLoading}
+                                className="text-red-600 hover:text-red-700 disabled:opacity-50"
+                                title="Deactivate subscription"
+                              >
+                                <XCircle className="w-4 h-4" />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => overrideSubscriptionMutation.mutate({ studentUserId: student.id, active: true })}
+                                disabled={overrideSubscriptionMutation.isLoading}
+                                className="text-green-600 hover:text-green-700 disabled:opacity-50"
+                                title="Activate subscription"
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                              </button>
+                            )}
+                            <div className="relative">
+                              <button
+                                onClick={() => setTrialMenuOpen(trialMenuOpen === student.id ? null : student.id)}
+                                disabled={overrideSubscriptionMutation.isLoading}
+                                className="text-blue-600 hover:text-blue-700 disabled:opacity-50"
+                                title="Grant trial"
+                              >
+                                <Gift className="w-4 h-4" />
+                              </button>
+                              {trialMenuOpen === student.id && (
+                                <div className="absolute right-0 mt-2 w-32 bg-[#0D1324] border border-[rgba(255,255,255,0.08)] rounded-lg shadow-lg z-10">
+                                  <button
+                                    onClick={() => {
+                                      overrideSubscriptionMutation.mutate({ studentUserId: student.id, trialDays: 1 });
+                                      setTrialMenuOpen(null);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-[#F5F7FF] hover:bg-[rgba(255,255,255,0.05)] first:rounded-t-lg"
+                                  >
+                                    1 day
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      overrideSubscriptionMutation.mutate({ studentUserId: student.id, trialDays: 7 });
+                                      setTrialMenuOpen(null);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-[#F5F7FF] hover:bg-[rgba(255,255,255,0.05)]"
+                                  >
+                                    1 week
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      overrideSubscriptionMutation.mutate({ studentUserId: student.id, trialDays: 30 });
+                                      setTrialMenuOpen(null);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-[#F5F7FF] hover:bg-[rgba(255,255,255,0.05)] last:rounded-b-lg"
+                                  >
+                                    1 month
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -197,13 +296,37 @@ const Students = () => {
 const StudentDetail = ({ id }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user, loading: authLoading } = useAuth();
+  const [trialMenuOpen, setTrialMenuOpen] = useState(false);
+
+  const overrideSubscriptionMutation = useMutation({
+    mutationFn: async ({ studentUserId, active, reason, trialDays }) => {
+      const response = await api.post(`/admin/subscription/override/${studentUserId}`, { active, reason, trialDays });
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-students'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-student', id] });
+      if (variables.trialDays) {
+        toast.success(`${variables.trialDays}-day trial granted successfully`);
+      } else {
+        toast.success(`Subscription ${variables.active ? 'activated' : 'deactivated'} successfully`);
+      }
+      setTrialMenuOpen(false);
+    },
+    onError: (error) => {
+      const message = error.response?.data?.message || 'Failed to update subscription';
+      toast.error(message);
+    },
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-student', id],
     queryFn: async () => {
       const response = await api.get(`/admin/students/${id}`);
       return response.data.data;
-    }
+    },
+    enabled: !authLoading && !!user, // Only run query when auth is ready and user exists
   });
 
   const updateMutation = useMutation({
@@ -303,7 +426,63 @@ const StudentDetail = ({ id }) => {
 
       {/* Subscriptions */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Subscriptions</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Subscriptions</h2>
+          <div className="flex items-center gap-2">
+            {subscriptions.length > 0 && subscriptions[0]?.status !== 'active' && (
+              <button
+                onClick={() => overrideSubscriptionMutation.mutate({ studentUserId: id, active: true })}
+                disabled={overrideSubscriptionMutation.isLoading}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm"
+              >
+                <CheckCircle className="w-4 h-4" />
+                Activate Subscription
+              </button>
+            )}
+            {subscriptions.length > 0 && subscriptions[0]?.status === 'active' && (
+              <button
+                onClick={() => overrideSubscriptionMutation.mutate({ studentUserId: id, active: false })}
+                disabled={overrideSubscriptionMutation.isLoading}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm"
+              >
+                <XCircle className="w-4 h-4" />
+                Deactivate Subscription
+              </button>
+            )}
+            <div className="relative">
+              <button
+                onClick={() => setTrialMenuOpen(!trialMenuOpen)}
+                disabled={overrideSubscriptionMutation.isLoading}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
+              >
+                <Gift className="w-4 h-4" />
+                Grant Trial
+              </button>
+              {trialMenuOpen && (
+                <div className="absolute right-0 mt-2 w-32 bg-[#0D1324] border border-[rgba(255,255,255,0.08)] rounded-lg shadow-lg z-10">
+                  <button
+                    onClick={() => overrideSubscriptionMutation.mutate({ studentUserId: id, trialDays: 1 })}
+                    className="w-full text-left px-4 py-2 text-sm text-[#F5F7FF] hover:bg-[rgba(255,255,255,0.05)] first:rounded-t-lg"
+                  >
+                    1 day
+                  </button>
+                  <button
+                    onClick={() => overrideSubscriptionMutation.mutate({ studentUserId: id, trialDays: 7 })}
+                    className="w-full text-left px-4 py-2 text-sm text-[#F5F7FF] hover:bg-[rgba(255,255,255,0.05)]"
+                  >
+                    1 week
+                  </button>
+                  <button
+                    onClick={() => overrideSubscriptionMutation.mutate({ studentUserId: id, trialDays: 30 })}
+                    className="w-full text-left px-4 py-2 text-sm text-[#F5F7FF] hover:bg-[rgba(255,255,255,0.05)] last:rounded-b-lg"
+                  >
+                    1 month
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">

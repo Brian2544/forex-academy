@@ -9,12 +9,25 @@ export const requireActiveSubscription = asyncHandler(async (req, res, next) => 
     });
   }
 
-  // Check for active subscription
+  // Get user role - admins and owners bypass subscription requirement
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('role')
+    .eq('id', req.userId)
+    .maybeSingle();
+
+  const userRole = profile?.role?.toLowerCase();
+  
+  // Admin and owner roles bypass subscription check
+  if (['admin', 'super_admin', 'owner', 'content_admin', 'support_admin', 'finance_admin'].includes(userRole)) {
+    return next();
+  }
+
+  // Check for active subscription or active trial
   const { data: subscription, error } = await supabaseAdmin
     .from('subscriptions')
-    .select('status')
+    .select('status, current_period_end, trial_ends_at')
     .eq('user_id', req.userId)
-    .eq('status', 'active')
     .maybeSingle();
 
   if (error) {
@@ -25,7 +38,13 @@ export const requireActiveSubscription = asyncHandler(async (req, res, next) => 
     });
   }
 
-  if (!subscription) {
+  // Check if user has active subscription or active trial
+  const hasActiveSubscription = subscription?.status === 'active';
+  const now = new Date();
+  const hasActiveTrial = subscription?.trial_ends_at && new Date(subscription.trial_ends_at) > now;
+  const hasValidPeriod = subscription?.current_period_end && new Date(subscription.current_period_end) > now;
+
+  if (!hasActiveSubscription && !hasActiveTrial && !hasValidPeriod) {
     return res.status(402).json({
       success: false,
       message: 'Active subscription required',

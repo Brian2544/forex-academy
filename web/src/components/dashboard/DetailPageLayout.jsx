@@ -7,7 +7,7 @@ import { getIcon } from '../../utils/icons';
 const DetailPageLayout = ({ title, icon, iconName, children, backLink = '/dashboard' }) => {
   const IconComponent = iconName ? getIcon(iconName) : null;
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-primary-50/30 to-secondary-50/30">
+    <div className="min-h-screen bg-[#0A0E1A]">
       <Navbar />
       
       <div className="container mx-auto px-4 pt-24 pb-12">
@@ -36,7 +36,7 @@ const DetailPageLayout = ({ title, icon, iconName, children, backLink = '/dashbo
                 <span className="text-4xl">{icon}</span>
               )}
             </div>
-            <h1 className="text-4xl font-bold text-neutral-900">{title}</h1>
+            <h1 className="text-4xl font-bold text-[#F5F7FF]">{title}</h1>
           </div>
         </div>
 

@@ -25,20 +25,20 @@ function App() {
             toastOptions={{
               duration: 4000,
               style: {
-                background: '#0B1220',
+                background: '#0D1324',
                 color: '#F5F7FF',
                 border: '1px solid rgba(255,255,255,0.12)'
               },
               success: {
                 iconTheme: {
                   primary: '#D8B547',
-                  secondary: '#0B1220'
+                  secondary: '#0D1324'
                 }
               },
               error: {
                 iconTheme: {
                   primary: '#EF4444',
-                  secondary: '#0B1220'
+                  secondary: '#0D1324'
                 }
               }
             }}

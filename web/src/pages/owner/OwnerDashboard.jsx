@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
-import { Users, Search, Save, X } from 'lucide-react';
+import { Users, Search, Save, X, CheckCircle, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import Loader from '../../components/common/Loader';
@@ -60,6 +60,21 @@ const OwnerDashboard = () => {
     },
   });
 
+  const overrideSubscriptionMutation = useMutation({
+    mutationFn: async ({ studentUserId, active, reason }) => {
+      const response = await api.post(`/admin/subscription/override/${studentUserId}`, { active, reason });
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['owner-users'] });
+      toast.success(`Subscription ${variables.active ? 'activated' : 'deactivated'} successfully`);
+    },
+    onError: (error) => {
+      const message = error.response?.data?.message || 'Failed to update subscription';
+      toast.error(message);
+    },
+  });
+
   const users = data?.users || [];
   const pagination = data?.pagination || { page: 1, limit, total: 0, totalPages: 1 };
 
@@ -104,14 +119,14 @@ const OwnerDashboard = () => {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Owner Dashboard</h1>
-        <p className="text-gray-600 mt-1">Manage all users and their roles</p>
+        <h1 className="text-3xl font-bold text-[#F5F7FF]">Owner Dashboard</h1>
+        <p className="text-[#B6C2E2] mt-1">Manage all users and their roles</p>
       </div>
 
       {/* Search Bar */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div className="bg-[#0D1324] rounded-lg shadow-sm border border-[rgba(255,255,255,0.08)] p-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#7E8AAE] w-5 h-5" />
           <input
             type="text"
             placeholder="Search by name or email..."
@@ -120,13 +135,13 @@ const OwnerDashboard = () => {
               setSearchTerm(e.target.value);
               setPage(1); // Reset to first page on search
             }}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="w-full pl-10 pr-4 py-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0A0E1A] text-[#F5F7FF] placeholder-[#7E8AAE]"
           />
         </div>
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-[#0D1324] rounded-lg shadow-sm border border-[rgba(255,255,255,0.08)] overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <Loader size="lg" />
@@ -135,19 +150,20 @@ const OwnerDashboard = () => {
           <>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-[#121B33] border-b border-[rgba(255,255,255,0.08)]">
                   <tr>
-                    <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Name</th>
-                    <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Email</th>
-                    <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Role</th>
-                    <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Joined</th>
-                    <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Actions</th>
+                    <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Name</th>
+                    <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Email</th>
+                    <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Role</th>
+                    <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Subscription</th>
+                    <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Joined</th>
+                    <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="text-center py-12 text-gray-500">
+                      <td colSpan={6} className="text-center py-12 text-[#B6C2E2]">
                         No users found
                       </td>
                     </tr>
@@ -155,19 +171,19 @@ const OwnerDashboard = () => {
                     users.map((user) => {
                       const isOwner = user.role?.toLowerCase() === 'owner';
                       return (
-                        <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="py-4 px-6 text-sm text-gray-900">
+                        <tr key={user.id} className="border-b border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.05)]">
+                          <td className="py-4 px-6 text-sm text-[#F5F7FF]">
                             {user.first_name || user.last_name
                               ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
                               : 'N/A'}
                           </td>
-                          <td className="py-4 px-6 text-sm text-gray-600">{user.email || 'N/A'}</td>
+                          <td className="py-4 px-6 text-sm text-[#B6C2E2]">{user.email || 'N/A'}</td>
                           <td className="py-4 px-6">
                             {editingUser === user.id ? (
                               <select
                                 value={newRole}
                                 onChange={(e) => setNewRole(e.target.value)}
-                                className="px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                className="px-3 py-1 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0A0E1A] text-[#F5F7FF]"
                                 disabled={isOwner}
                               >
                                 {allRoles.map((role) => (
@@ -187,14 +203,41 @@ const OwnerDashboard = () => {
                               </span>
                             )}
                           </td>
-                          <td className="py-4 px-6 text-sm text-gray-600">
+                          <td className="py-4 px-6">
+                            {user.role?.toLowerCase() === 'student' ? (
+                              <div className="space-y-1">
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                                    user.subscription_status === 'active'
+                                      ? 'bg-green-100 text-green-800'
+                                      : 'bg-gray-100 text-gray-800'
+                                  }`}
+                                >
+                                  {user.subscription_status || 'inactive'}
+                                </span>
+                                {user.subscription_override_by && (
+                                  <div className="text-xs text-[#7E8AAE]">
+                                    By {user.subscription_override_by.name} ({user.subscription_override_by.role})
+                                    {user.subscription_override_by.at && (
+                                      <span className="ml-1">
+                                        on {format(new Date(user.subscription_override_by.at), 'MMM d, yyyy')}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-[#7E8AAE]">N/A</span>
+                            )}
+                          </td>
+                          <td className="py-4 px-6 text-sm text-[#B6C2E2]">
                             {user.created_at
                               ? format(new Date(user.created_at), 'MMM d, yyyy')
                               : 'N/A'}
                           </td>
                           <td className="py-4 px-6">
                             {isOwner ? (
-                              <span className="text-xs text-gray-500 italic">Owner accounts cannot be modified</span>
+                              <span className="text-xs text-[#7E8AAE] italic">Owner accounts cannot be modified</span>
                             ) : editingUser === user.id ? (
                               <div className="flex gap-2">
                                 <button
@@ -215,13 +258,38 @@ const OwnerDashboard = () => {
                                 </button>
                               </div>
                             ) : (
-                              <button
-                                onClick={() => handleEdit(user)}
-                                className="text-orange-600 hover:text-orange-700"
-                                title="Edit role"
-                              >
-                                <Users className="w-4 h-4" />
-                              </button>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleEdit(user)}
+                                  className="text-orange-600 hover:text-orange-700"
+                                  title="Edit role"
+                                >
+                                  <Users className="w-4 h-4" />
+                                </button>
+                                {user.role?.toLowerCase() === 'student' && (
+                                  <>
+                                    {user.subscription_status === 'active' ? (
+                                      <button
+                                        onClick={() => overrideSubscriptionMutation.mutate({ studentUserId: user.id, active: false })}
+                                        disabled={overrideSubscriptionMutation.isLoading}
+                                        className="text-red-600 hover:text-red-700 disabled:opacity-50"
+                                        title="Deactivate subscription"
+                                      >
+                                        <XCircle className="w-4 h-4" />
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={() => overrideSubscriptionMutation.mutate({ studentUserId: user.id, active: true })}
+                                        disabled={overrideSubscriptionMutation.isLoading}
+                                        className="text-green-600 hover:text-green-700 disabled:opacity-50"
+                                        title="Activate subscription"
+                                      >
+                                        <CheckCircle className="w-4 h-4" />
+                                      </button>
+                                    )}
+                                  </>
+                                )}
+                              </div>
                             )}
                           </td>
                         </tr>
@@ -234,8 +302,8 @@ const OwnerDashboard = () => {
 
             {/* Pagination */}
             {pagination.totalPages > 1 && (
-              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                <div className="text-sm text-gray-700">
+              <div className="bg-[#121B33] px-6 py-4 border-t border-[rgba(255,255,255,0.08)] flex items-center justify-between">
+                <div className="text-sm text-[#B6C2E2]">
                   Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
                   {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} users
                 </div>
@@ -243,14 +311,14 @@ const OwnerDashboard = () => {
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
-                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 text-sm border border-[rgba(255,255,255,0.08)] rounded-lg hover:bg-[rgba(255,255,255,0.05)] disabled:opacity-50 disabled:cursor-not-allowed text-[#B6C2E2]"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                     disabled={page === pagination.totalPages}
-                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 text-sm border border-[rgba(255,255,255,0.08)] rounded-lg hover:bg-[rgba(255,255,255,0.05)] disabled:opacity-50 disabled:cursor-not-allowed text-[#B6C2E2]"
                   >
                     Next
                   </button>

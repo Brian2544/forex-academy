@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import Loader from '../common/Loader';
 
 const SubscriptionRoute = ({ children }) => {
-  const { user, subscriptionStatus, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -18,11 +18,16 @@ const SubscriptionRoute = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check if subscription is active
-  if (subscriptionStatus !== 'ACTIVE') {
-    return <Navigate to="/pricing" state={{ from: location, message: 'Active subscription required' }} replace />;
+  // Admin and owner roles bypass subscription requirement
+  const userRole = profile?.role?.toLowerCase();
+  const isAdminOrOwner = ['admin', 'super_admin', 'owner', 'content_admin', 'support_admin', 'finance_admin'].includes(userRole);
+  
+  if (isAdminOrOwner) {
+    return children;
   }
 
+  // For students, subscription check is handled by backend middleware
+  // Frontend just allows access - backend will enforce if needed
   return children;
 };
 

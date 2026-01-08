@@ -96,16 +96,16 @@ const OwnerLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070A0F] flex">
+    <div className="min-h-screen bg-[#0A0E1A] flex">
       {/* Sidebar */}
       <aside
         className={`${
           sidebarOpen ? 'w-64' : 'w-20'
-        } bg-white border-r border-gray-200 shadow-sm transition-all duration-300 flex flex-col h-screen fixed left-0 top-0 z-40`}
+        } bg-[#121B33] border-r border-[rgba(255,255,255,0.08)] shadow-sm transition-all duration-300 flex flex-col h-screen fixed left-0 top-0 z-40`}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+          <div className="p-4 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 gradient-brand rounded-xl flex items-center justify-center shadow-md">
                 <span className="text-white font-black text-lg">FX</span>

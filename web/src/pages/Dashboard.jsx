@@ -154,25 +154,25 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-white via-primary-50/30 to-secondary-50/30 flex items-center justify-center">
+      <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center">
         <Loader size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-primary-50/30 to-secondary-50/30">
+    <div className="min-h-screen bg-[#0A0E1A]">
       <Navbar />
       
       <div className="container mx-auto px-4 pt-24 pb-12">
         {/* Welcome Section */}
         <div className="mb-8 relative">
           <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 via-secondary-500/5 to-primary-500/10 rounded-2xl blur-3xl"></div>
-          <div className="relative bg-white border-2 border-primary-200 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <h1 className="text-4xl font-bold text-neutral-900 mb-2">
+          <div className="relative bg-[#0D1324] border-2 border-[rgba(255,255,255,0.08)] rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <h1 className="text-4xl font-bold text-[#F5F7FF] mb-2">
               Welcome back, <span className="text-gradient">{user?.email?.split('@')[0] || 'Professional'}</span>!
             </h1>
-            <p className="text-neutral-600">
+            <p className="text-[#B6C2E2]">
               Continue your professional development and explore all available resources
             </p>
             <div className="mt-4 flex items-center gap-4">
@@ -180,12 +180,12 @@ const Dashboard = () => {
                 <div className={`w-3 h-3 rounded-full ${statusColor === 'green' ? 'bg-secondary-500' : statusColor === 'red' ? 'bg-danger-500' : 'bg-primary-500'} animate-pulse shadow-lg ${
                   statusColor === 'green' ? 'shadow-secondary-500/50' : statusColor === 'red' ? 'shadow-danger-500/50' : 'shadow-primary-500/50'
                 }`}></div>
-                <span className="text-sm text-neutral-600">Status: <span className="text-neutral-900 capitalize font-semibold">{userStatus}</span></span>
+                <span className="text-sm text-[#B6C2E2]">Status: <span className="text-[#F5F7FF] capitalize font-semibold">{userStatus}</span></span>
               </div>
               {healthStatus?.ok && (
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-secondary-500 rounded-full animate-pulse shadow-lg shadow-secondary-500/50"></div>
-                  <span className="text-sm text-neutral-600">Backend Connected</span>
+                  <span className="text-sm text-[#B6C2E2]">Backend Connected</span>
                 </div>
               )}
             </div>
@@ -210,10 +210,10 @@ const Dashboard = () => {
         {/* Additional Info Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="card-dark relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary-100 to-transparent rounded-bl-full"></div>
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[rgba(216,181,71,0.1)] to-transparent rounded-bl-full"></div>
             <div className="relative z-10">
-              <h2 className="text-2xl font-bold text-neutral-900 mb-4">Testimonials & Success Stories</h2>
-              <p className="text-neutral-600 mb-4">
+              <h2 className="text-2xl font-bold text-[#F5F7FF] mb-4">Testimonials & Success Stories</h2>
+              <p className="text-[#B6C2E2] mb-4">
                 Read reviews from professionals, see before and after stories, screenshots, and video testimonials
               </p>
               <Link
@@ -227,20 +227,20 @@ const Dashboard = () => {
           </div>
 
           <div className="card-dark relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-secondary-100 to-transparent rounded-br-full"></div>
+            <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-[rgba(216,181,71,0.1)] to-transparent rounded-br-full"></div>
             <div className="relative z-10">
-              <h2 className="text-2xl font-bold text-neutral-900 mb-4">Your Profile</h2>
+              <h2 className="text-2xl font-bold text-[#F5F7FF] mb-4">Your Profile</h2>
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between">
-                  <span className="text-neutral-600">Email:</span>
-                  <span className="text-neutral-900 font-medium">{user?.email}</span>
+                  <span className="text-[#B6C2E2]">Email:</span>
+                  <span className="text-[#F5F7FF] font-medium">{user?.email}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-600">Role:</span>
-                  <span className="text-neutral-900 capitalize font-medium">{user?.role || 'Professional'}</span>
+                  <span className="text-[#B6C2E2]">Role:</span>
+                  <span className="text-[#F5F7FF] capitalize font-medium">{user?.role || 'Professional'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-600">Status:</span>
+                  <span className="text-[#B6C2E2]">Status:</span>
                   <span className={`capitalize font-semibold ${
                     statusColor === 'green' ? 'text-secondary-600' : 
                     statusColor === 'red' ? 'text-danger-600' : 

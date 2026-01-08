@@ -2,12 +2,22 @@ import api from './api';
 
 export const paymentService = {
   getPlans: async () => {
-    const response = await api.get('/payments/plans');
+    const response = await api.get('/billing/plans');
     return response.data;
   },
 
-  initiatePayment: async (plan) => {
-    const response = await api.post('/payments/initiate', { plan });
+  initiatePayment: async (planId) => {
+    const response = await api.post('/billing/checkout', { planId });
+    return response.data;
+  },
+
+  verifyPayment: async (reference) => {
+    const response = await api.get(`/billing/verify?reference=${reference}`);
+    return response.data;
+  },
+
+  getMySubscription: async () => {
+    const response = await api.get('/billing/me');
     return response.data;
   },
 
@@ -17,7 +27,7 @@ export const paymentService = {
   },
 
   getCurrentSubscription: async () => {
-    const response = await api.get('/payments/subscription');
+    const response = await api.get('/billing/me');
     return response.data;
   }
 };

@@ -74,10 +74,10 @@ const AdminLayout = () => {
     : (profile?.email ? profile.email.split('@')[0] : null) || 'User';
 
   return (
-    <div className="min-h-screen bg-[#070A0F]">
+    <div className="min-h-screen bg-[#0A0E1A]">
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-40 h-screen bg-[#0B1220] border-r border-[rgba(255,255,255,0.08)] transition-all duration-300 ${
+        className={`fixed left-0 top-0 z-40 h-screen bg-[#121B33] border-r border-[rgba(255,255,255,0.08)] transition-all duration-300 ${
           sidebarOpen ? 'w-64' : 'w-20'
         }`}
       >
@@ -155,7 +155,7 @@ const AdminLayout = () => {
       {/* Main Content */}
       <div className={`transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}`}>
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 bg-[#0B1220] border-b border-[rgba(255,255,255,0.08)]">
+        <header className="sticky top-0 z-30 bg-[#121B33] border-b border-[rgba(255,255,255,0.08)]">
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-4 flex-1">
               <button
@@ -169,7 +169,7 @@ const AdminLayout = () => {
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-2 border border-[rgba(255,255,255,0.12)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0F1A2E] text-[#F5F7FF]"
+                  className="w-full pl-10 pr-4 py-2 border border-[rgba(255,255,255,0.12)] rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-[#0D1324] text-[#F5F7FF]"
                 />
               </div>
             </div>
@@ -193,7 +193,7 @@ const AdminLayout = () => {
                   </div>
                 </button>
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-[#0B1220] rounded-lg shadow-lg border border-[rgba(255,255,255,0.08)] py-2">
+                  <div className="absolute right-0 mt-2 w-48 bg-[#121B33] rounded-lg shadow-lg border border-[rgba(255,255,255,0.08)] py-2">
                     <button
                       onClick={() => {
                         navigate('/admin/settings');

@@ -12,6 +12,9 @@ import {
   blogPostsHandlers,
   marketAnalysisHandlers,
   testimonialsHandlers,
+  overrideSubscription,
+  getStudents,
+  getStudentById,
 } from './admin.controller.js';
 
 const router = express.Router();
@@ -23,6 +26,13 @@ router.use(requireRole('admin', 'super_admin', 'owner', 'content_admin', 'suppor
 // Role management (owner, super_admin) - kept for backwards compatibility
 // Note: New implementations should use /owner/users/:id/role
 router.post('/users/:id/role', requireRole('owner', 'super_admin'), updateUserRole);
+
+// Subscription override (owner, admin, super_admin)
+router.post('/subscription/override/:studentUserId', requireRole('owner', 'admin', 'super_admin'), overrideSubscription);
+
+// Students management
+router.get('/students', getStudents);
+router.get('/students/:id', getStudentById);
 
 // Settings
 router.get('/settings', getSettings);

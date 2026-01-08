@@ -20,7 +20,23 @@ export default defineConfig({
       },
       '/admin': {
         target: 'http://localhost:4000',
-        changeOrigin: true
+        changeOrigin: true,
+        bypass: function(req, res, options) {
+          // Don't proxy if it's a browser navigation (no Accept header or Accept includes text/html)
+          // Only proxy actual API calls (Accept: application/json or has Authorization header)
+          const acceptHeader = req.headers.accept || '';
+          const isApiCall = acceptHeader.includes('application/json') || 
+                           acceptHeader.includes('application/xml') ||
+                           req.headers.authorization ||
+                           req.method !== 'GET';
+          
+          // If it's not an API call, let Vite serve the SPA (return null)
+          if (!isApiCall) {
+            return '/index.html';
+          }
+          // Otherwise, proxy to backend
+          return null;
+        }
       },
       '/billing': {
         target: 'http://localhost:4000',
@@ -33,6 +49,21 @@ export default defineConfig({
       '/chat': {
         target: 'http://localhost:4000',
         changeOrigin: true
+      },
+      '/owner': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+        bypass: function(req, res, options) {
+          // Don't proxy SPA routes - only API calls
+          const acceptHeader = req.headers.accept || '';
+          const isApiCall = acceptHeader.includes('application/json') || 
+                           req.headers.authorization ||
+                           req.method !== 'GET';
+          if (!isApiCall) {
+            return '/index.html';
+          }
+          return null;
+        }
       }
     }
   },

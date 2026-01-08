@@ -59,12 +59,12 @@ const DashboardLayout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#070A0F] via-[#0B1220] to-[#0F1A2E]">
+    <div className="min-h-screen bg-[#0A0E1A]">
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 z-40 h-screen transition-transform ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 w-64 bg-[#0B1220] border-r border-[rgba(255,255,255,0.08)] shadow-lg`}
+        } lg:translate-x-0 w-64 bg-[#121B33] border-r border-[rgba(255,255,255,0.08)] shadow-lg`}
       >
         <div className="h-full flex flex-col">
           {/* Logo */}
@@ -106,7 +106,7 @@ const DashboardLayout = ({ children }) => {
 
           {/* User Section */}
           <div className="p-4 border-t border-[rgba(255,255,255,0.08)]">
-            <div className="flex items-center space-x-3 px-4 py-3 bg-[#0F1A2E] rounded-xl">
+            <div className="flex items-center space-x-3 px-4 py-3 bg-[#0D1324] rounded-xl">
               <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center text-white font-bold">
                 {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
               </div>
@@ -138,7 +138,7 @@ const DashboardLayout = ({ children }) => {
       {/* Main Content */}
       <div className="lg:pl-64">
         {/* Topbar */}
-        <header className="sticky top-0 z-20 bg-[#0B1220]/95 backdrop-blur-lg border-b border-[rgba(255,255,255,0.08)] shadow-sm">
+        <header className="sticky top-0 z-20 bg-[#121B33]/95 backdrop-blur-lg border-b border-[rgba(255,255,255,0.08)] shadow-sm">
           <div className="flex items-center justify-between px-4 lg:px-8 h-16">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -154,7 +154,7 @@ const DashboardLayout = ({ children }) => {
                 <input
                   type="search"
                   placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-2 bg-[#0F1A2E] border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-[#F5F7FF]"
+                  className="w-full pl-10 pr-4 py-2 bg-[#0D1324] border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-[#F5F7FF]"
                 />
                 <svg
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#7E8AAE]"

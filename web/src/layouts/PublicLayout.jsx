@@ -4,7 +4,7 @@ import Footer from '../components/common/Footer';
 
 const PublicLayout = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-primary-50/30 to-secondary-50/30">
+    <div className="min-h-screen bg-[#0A0E1A]">
       <PublicNavbar />
       <main className="pt-20">
         <Outlet />

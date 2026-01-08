@@ -14,17 +14,33 @@ const Billing = () => {
   const reference = searchParams.get('reference');
   const trxref = searchParams.get('trxref');
 
-  // Handle Paystack redirect
+  // Handle Paystack redirect and verify payment
   useEffect(() => {
+    const verifyPayment = async () => {
+      const ref = reference || trxref;
+      if (!ref || !isAuthenticated) return;
+
+      try {
+        const response = await api.get(`/billing/verify?reference=${ref}`);
+        if (response.data.success) {
+          toast.success('Payment successful! Your subscription is being activated...');
+          // Refetch access status
+          setTimeout(() => {
+            navigate('/student/dashboard');
+          }, 2000);
+        } else {
+          toast.error('Payment verification failed. Please contact support.');
+        }
+      } catch (error) {
+        console.error('Verification error:', error);
+        toast.error('Failed to verify payment. Please contact support if payment was successful.');
+      }
+    };
+
     if (reference || trxref) {
-      // Payment was successful, show success message
-      toast.success('Payment successful! Your subscription is being activated...');
-      // Refetch access status
-      setTimeout(() => {
-        window.location.href = '/student/dashboard';
-      }, 2000);
+      verifyPayment();
     }
-  }, [reference, trxref]);
+  }, [reference, trxref, isAuthenticated, navigate]);
 
   const { data: plansData, isLoading: plansLoading } = useQuery({
     queryKey: ['billing-plans'],
@@ -60,9 +76,11 @@ const Billing = () => {
     }
 
     try {
-      const response = await api.post('/payments/checkout', { planId });
+      const response = await api.post('/billing/checkout', { planId });
       if (response.data.success && response.data.data.authorization_url) {
         window.location.href = response.data.data.authorization_url;
+      } else {
+        toast.error('Failed to initialize payment');
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to initialize payment');
@@ -74,19 +92,19 @@ const Billing = () => {
 
   if (plansLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#0A0E1A]">
       <div className="container mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold text-[#F5F7FF] mb-4">Choose Your Plan</h1>
+          <p className="text-lg text-[#B6C2E2] max-w-2xl mx-auto">
             Select a subscription plan to access all training materials, live classes, and exclusive content.
           </p>
           {isActive && (
@@ -106,42 +124,42 @@ const Billing = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="bg-white border-2 border-gray-200 rounded-lg p-8 hover:border-primary-300 hover:shadow-lg transition-all"
+                className="bg-[#0D1324] border-2 border-[rgba(255,255,255,0.08)] rounded-lg p-8 hover:border-primary-300 hover:shadow-lg transition-all"
               >
                 <div className="mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+                  <h3 className="text-2xl font-bold text-[#F5F7FF] mb-2">{plan.name}</h3>
                   <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-bold text-primary-600">
                       ${plan.price_usd.toLocaleString()}
                     </span>
                     {plan.interval === 'monthly' && (
-                      <span className="text-gray-600">/month</span>
+                      <span className="text-[#B6C2E2]">/month</span>
                     )}
                   </div>
                 </div>
 
                 <ul className="space-y-3 mb-8">
-                  <li className="flex items-center gap-2 text-gray-700">
+                  <li className="flex items-center gap-2 text-[#B6C2E2]">
                     <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
                     <span>Access to all courses (Beginner, Intermediate, Advanced)</span>
                   </li>
-                  <li className="flex items-center gap-2 text-gray-700">
+                  <li className="flex items-center gap-2 text-[#B6C2E2]">
                     <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
                     <span>Live classes and webinars</span>
                   </li>
-                  <li className="flex items-center gap-2 text-gray-700">
+                  <li className="flex items-center gap-2 text-[#B6C2E2]">
                     <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
                     <span>Market analysis and insights</span>
                   </li>
-                  <li className="flex items-center gap-2 text-gray-700">
+                  <li className="flex items-center gap-2 text-[#B6C2E2]">
                     <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
                     <span>Member-only discussion forums</span>
                   </li>
-                  <li className="flex items-center gap-2 text-gray-700">
+                  <li className="flex items-center gap-2 text-[#B6C2E2]">
                     <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
                     <span>Blog articles and resources</span>
                   </li>
-                  <li className="flex items-center gap-2 text-gray-700">
+                  <li className="flex items-center gap-2 text-[#B6C2E2]">
                     <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
                     <span>Priority support</span>
                   </li>
@@ -162,15 +180,15 @@ const Billing = () => {
             ))
           ) : (
             <div className="col-span-2 text-center py-12">
-              <p className="text-gray-600">No plans available at the moment.</p>
+              <p className="text-[#B6C2E2]">No plans available at the moment.</p>
             </div>
           )}
         </div>
 
         {/* Payment Info */}
-        <div className="mt-12 max-w-2xl mx-auto bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Payment Information</h3>
-          <ul className="space-y-2 text-sm text-gray-700">
+        <div className="mt-12 max-w-2xl mx-auto bg-[#0D1324] border border-[rgba(255,255,255,0.08)] rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-[#F5F7FF] mb-2">Payment Information</h3>
+          <ul className="space-y-2 text-sm text-[#B6C2E2]">
             <li>• Payments are processed securely through Paystack</li>
             <li>• All prices are in US Dollars (USD)</li>
             <li>• Your subscription will be activated immediately after successful payment</li>
@@ -179,9 +197,9 @@ const Billing = () => {
         </div>
 
         {/* Risk Disclaimer */}
-        <div className="mt-8 max-w-2xl mx-auto bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Risk Disclaimer</h3>
-          <p className="text-sm text-gray-700">
+        <div className="mt-8 max-w-2xl mx-auto bg-[#0D1324] border border-[rgba(255,255,255,0.08)] rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-[#F5F7FF] mb-2">Risk Disclaimer</h3>
+          <p className="text-sm text-[#B6C2E2]">
             Trading forex involves substantial risk of loss. We do not guarantee profits. 
             Past performance is not indicative of future results. Only trade with money you can afford to lose.
           </p>
