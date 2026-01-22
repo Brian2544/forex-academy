@@ -8,6 +8,8 @@ const __dirname = dirname(__filename);
 
 // Load .env from backend directory (one level up from src/config)
 dotenv.config({ path: join(__dirname, '..', '..', '.env') });
+// Optionally load local.env for machine-specific secrets
+dotenv.config({ path: join(__dirname, '..', 'config', 'local.env') });
 
 // Ensure OWNER_EMAILS is available (don't crash if absent)
 const ownerEmails = process.env.OWNER_EMAILS || '';

@@ -2,6 +2,49 @@ import { supabaseAdmin } from '../../config/supabaseAdmin.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { logger } from '../../utils/logger.js';
 
+// Admin: Get all chat groups
+export const getAllGroups = asyncHandler(async (req, res) => {
+  const { search, page = 1, limit = 20 } = req.query;
+  const offset = (parseInt(page) - 1) * parseInt(limit);
+
+  let query = supabaseAdmin
+    .from('chat_groups')
+    .select('*, chat_group_members(id)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + parseInt(limit) - 1);
+
+  if (search) {
+    query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+  }
+
+  const { data: groups, error, count } = await query;
+
+  if (error) {
+    logger.error('Error fetching chat groups:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch chat groups',
+    });
+  }
+
+  // Transform data to include member count
+  const transformedGroups = (groups || []).map((group) => ({
+    ...group,
+    members: group.chat_group_members || [],
+  }));
+
+  res.json({
+    success: true,
+    data: transformedGroups,
+    pagination: {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total: count || 0,
+      totalPages: Math.ceil((count || 0) / parseInt(limit)),
+    },
+  });
+});
+
 // Admin: Create chat group
 export const createGroup = asyncHandler(async (req, res) => {
   const { name, description } = req.body;

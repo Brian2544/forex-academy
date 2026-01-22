@@ -8,8 +8,17 @@ const CourseCard = ({ course, progress }) => {
     advanced: 'bg-purple-500/20 text-purple-400'
   };
 
+  // Map course level to route
+  const getCourseRoute = () => {
+    if (course.level === 'beginner') return '/student/courses/beginner';
+    if (course.level === 'intermediate') return '/student/courses/intermediate';
+    if (course.level === 'advanced') return '/student/courses/advanced';
+    // Fallback to courses list if level doesn't match
+    return '/courses';
+  };
+
   return (
-    <Link to={`/courses/${course.id}`} className="card hover:border-primary-300 transition group">
+    <Link to={getCourseRoute()} className="card hover:border-primary-300 transition group">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-xl font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-300 mb-2">

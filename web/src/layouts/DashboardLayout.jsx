@@ -5,14 +5,15 @@ import { getIcon } from '../utils/icons';
 import api from '../services/api';
 
 const DashboardLayout = ({ children }) => {
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
-  const isAdmin = user?.role && ['ADMIN', 'SUPER_ADMIN', 'OWNER', 'INSTRUCTOR'].includes(user.role);
-  const isStudent = user?.role === 'STUDENT';
+  const role = profile?.role?.toLowerCase();
+  const isAdmin = role && ['admin', 'super_admin', 'owner', 'instructor', 'content_admin', 'support_admin', 'finance_admin'].includes(role);
+  const isStudent = role === 'student';
 
   // Navigation items based on role
   const getNavItems = () => {

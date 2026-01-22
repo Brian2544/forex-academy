@@ -18,14 +18,14 @@ const Groups = () => {
     queryFn: async () => {
       const params = new URLSearchParams({ page, limit: 20 });
       if (search) params.append('search', search);
-      const response = await api.get(`/admin/groups?${params}`);
+      const response = await api.get(`/chat/admin/groups?${params}`);
       return response.data;
     }
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id) => {
-      const response = await api.delete(`/admin/groups/${id}`);
+      const response = await api.delete(`/chat/admin/groups/${id}`);
       return response.data;
     },
     onSuccess: () => {
@@ -141,16 +141,20 @@ const CreateGroupModal = ({ onClose }) => {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const response = await api.post('/admin/groups', data);
+      const response = await api.post('/chat/admin/groups', data);
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-groups']);
       toast.success('Group created successfully');
+      setName('');
+      setDescription('');
       onClose();
     },
-    onError: () => {
-      toast.error('Failed to create group');
+    onError: (error) => {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to create group';
+      toast.error(errorMessage);
+      console.error('Error creating group:', error);
     }
   });
 

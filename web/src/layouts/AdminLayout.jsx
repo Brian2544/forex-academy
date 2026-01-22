@@ -36,6 +36,7 @@ const AdminLayout = () => {
     { icon: UsersRound, label: 'Groups', path: '/admin/groups' },
     { icon: MessageSquare, label: 'Chat Monitor', path: '/admin/chat-monitor' },
     { icon: Video, label: 'Live Trainings', path: '/admin/live-trainings' },
+    { icon: BookOpen, label: 'Courses', path: '/admin/courses' },
     { icon: BookOpen, label: 'Lessons', path: '/admin/lessons' },
     { icon: Folder, label: 'Resources', path: '/admin/resources' },
     { icon: TrendingUp, label: 'Signals', path: '/admin/signals' },

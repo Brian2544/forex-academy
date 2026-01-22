@@ -1,11 +1,13 @@
 import express from 'express';
 import { requireAuth } from '../../middleware/requireAuth.js';
-import { requireActiveSubscription } from '../../middleware/requireActiveSubscription.js';
+// requireActiveSubscription middleware kept for future payment integration
+// import { requireActiveSubscription } from '../../middleware/requireActiveSubscription.js';
 import {
   getDashboard,
   getCourses,
   getCourse,
   getLessons,
+  getResources,
   getLiveSessions,
   getAnnouncements,
   getBlogPosts,
@@ -39,16 +41,18 @@ router.get('/access', requireAuth, async (req, res) => {
   });
 });
 
-// All content routes require active subscription
-router.get('/courses', requireAuth, requireActiveSubscription, getCourses);
-router.get('/courses/:id', requireAuth, requireActiveSubscription, getCourse);
-router.get('/lessons', requireAuth, requireActiveSubscription, getLessons);
-router.get('/live-classes', requireAuth, requireActiveSubscription, getLiveSessions);
-router.get('/announcements', requireAuth, requireActiveSubscription, getAnnouncements);
-router.get('/blog', requireAuth, requireActiveSubscription, getBlogPosts);
-router.get('/blog/:id', requireAuth, requireActiveSubscription, getBlogPost);
-router.get('/market-analysis', requireAuth, requireActiveSubscription, getMarketAnalysis);
-router.get('/testimonials', requireAuth, requireActiveSubscription, getTestimonials);
+// All content routes - subscription requirement removed (payment integration on hold)
+// All courses and content are now accessible to authenticated users
+router.get('/courses', requireAuth, getCourses);
+router.get('/courses/:id', requireAuth, getCourse);
+router.get('/lessons', requireAuth, getLessons);
+router.get('/resources', requireAuth, getResources);
+router.get('/live-classes', requireAuth, getLiveSessions);
+router.get('/announcements', requireAuth, getAnnouncements);
+router.get('/blog', requireAuth, getBlogPosts);
+router.get('/blog/:id', requireAuth, getBlogPost);
+router.get('/market-analysis', requireAuth, getMarketAnalysis);
+router.get('/testimonials', requireAuth, getTestimonials);
 
 export default router;
 

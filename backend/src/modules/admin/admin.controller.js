@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '../../config/supabaseAdmin.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { logger } from '../../utils/logger.js';
+import pg from 'pg';
 import { canAssignRole, ROLES } from '../../utils/roleUtils.js';
 import { bootstrapProfile } from '../../utils/profileBootstrap.js';
 
@@ -195,13 +196,133 @@ export const updateSettings = asyncHandler(async (req, res) => {
 // CRUD operations for courses, lessons, live_sessions, announcements, blog_posts, market_analysis, testimonials
 // These follow similar patterns - I'll create generic handlers
 
+const { Pool } = pg;
+const dbUrl = process.env.SUPABASE_DB_URL || process.env.DATABASE_URL || '';
+const dbPool = dbUrl ? new Pool({ connectionString: dbUrl }) : null;
+
+const ensureBucketExists = async (bucketName) => {
+  const { data: buckets, error: listError } = await supabaseAdmin.storage.listBuckets();
+  if (listError) {
+    throw listError;
+  }
+
+  const exists = (buckets || []).some((bucket) => bucket.name === bucketName);
+  if (!exists) {
+    const { error: createError } = await supabaseAdmin.storage.createBucket(bucketName, {
+      public: true,
+    });
+    if (createError) {
+      throw createError;
+    }
+  }
+
+  return exists;
+};
+
+const isMissingTableError = (error) => {
+  const code = error?.code || '';
+  const message = error?.message || '';
+  return (
+    code === '42P01' ||
+    code === 'PGRST205' ||
+    message.includes('does not exist') ||
+    message.includes('relation "resources"') ||
+    message.includes('schema cache')
+  );
+};
+
+const ensureResourcesTable = async () => {
+  if (!dbPool) {
+    return false;
+  }
+
+  const sql = `
+    CREATE TABLE IF NOT EXISTS resources (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      course_id UUID REFERENCES courses(id) ON DELETE SET NULL,
+      title TEXT NOT NULL,
+      type TEXT NOT NULL CHECK (type IN ('document', 'video', 'image', 'link', 'other')),
+      url TEXT NOT NULL,
+      is_active BOOLEAN DEFAULT true,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_resources_course_id ON resources(course_id);
+    CREATE INDEX IF NOT EXISTS idx_resources_type ON resources(type);
+  `;
+
+  try {
+    await dbPool.query(sql);
+    return true;
+  } catch (error) {
+    logger.error('Failed to ensure resources table:', error);
+    return false;
+  }
+};
+
+const ensureLessonsColumns = async () => {
+  if (!dbPool) {
+    return false;
+  }
+
+  const sql = `
+    ALTER TABLE lessons
+      ADD COLUMN IF NOT EXISTS level TEXT CHECK (level IN ('beginner', 'intermediate', 'advanced')),
+      ADD COLUMN IF NOT EXISTS published BOOLEAN DEFAULT false;
+  `;
+
+  try {
+    await dbPool.query(sql);
+    return true;
+  } catch (error) {
+    logger.error('Failed to ensure lessons columns:', error);
+    return false;
+  }
+};
+
 const createCRUDHandlers = (tableName) => {
   return {
     list: asyncHandler(async (req, res) => {
-      const { data, error } = await supabaseAdmin
+      const { page, limit, type, course_id } = req.query;
+      const pageNum = page ? parseInt(page, 10) : null;
+      const limitNum = limit ? parseInt(limit, 10) : null;
+
+      let query = supabaseAdmin
         .from(tableName)
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false });
+
+      if (tableName === 'resources') {
+        if (type) query = query.eq('type', type);
+        if (course_id) query = query.eq('course_id', course_id);
+      }
+
+      if (pageNum && limitNum) {
+        const offset = (pageNum - 1) * limitNum;
+        query = query.range(offset, offset + limitNum - 1);
+      }
+
+      let { data, error, count } = await query;
+
+      if (error && tableName === 'resources' && isMissingTableError(error)) {
+        const ensured = await ensureResourcesTable();
+        if (ensured) {
+          const retry = await query;
+          data = retry.data;
+          error = retry.error;
+          count = retry.count;
+        }
+      }
+
+      if (error && tableName === 'lessons' && isMissingTableError(error)) {
+        const ensured = await ensureLessonsColumns();
+        if (ensured) {
+          const retry = await query;
+          data = retry.data;
+          error = retry.error;
+          count = retry.count;
+        }
+      }
 
       if (error) {
         logger.error(`Error listing ${tableName}:`, error);
@@ -214,6 +335,14 @@ const createCRUDHandlers = (tableName) => {
       res.json({
         success: true,
         data: data || [],
+        ...(count !== null && count !== undefined && pageNum && limitNum ? {
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total: count,
+            totalPages: Math.ceil(count / limitNum),
+          },
+        } : {}),
       });
     }),
 
@@ -239,15 +368,43 @@ const createCRUDHandlers = (tableName) => {
     }),
 
     create: asyncHandler(async (req, res) => {
-      const { data: created, error } = await supabaseAdmin
+      const payload = {
+        ...req.body,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      let { data: created, error } = await supabaseAdmin
         .from(tableName)
-        .insert({
-          ...req.body,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .insert(payload)
         .select()
         .single();
+
+      if (error && tableName === 'resources' && isMissingTableError(error)) {
+        const ensured = await ensureResourcesTable();
+        if (ensured) {
+          const retry = await supabaseAdmin
+            .from(tableName)
+            .insert(payload)
+            .select()
+            .single();
+          created = retry.data;
+          error = retry.error;
+        }
+      }
+
+      if (error && tableName === 'lessons' && isMissingTableError(error)) {
+        const ensured = await ensureLessonsColumns();
+        if (ensured) {
+          const retry = await supabaseAdmin
+            .from(tableName)
+            .insert(payload)
+            .select()
+            .single();
+          created = retry.data;
+          error = retry.error;
+        }
+      }
 
       if (error) {
         logger.error(`Error creating ${tableName}:`, error);
@@ -314,11 +471,84 @@ const createCRUDHandlers = (tableName) => {
 // Export CRUD handlers for each table
 export const coursesHandlers = createCRUDHandlers('courses');
 export const lessonsHandlers = createCRUDHandlers('lessons');
+export const resourcesHandlers = createCRUDHandlers('resources');
 export const liveSessionsHandlers = createCRUDHandlers('live_sessions');
 export const announcementsHandlers = createCRUDHandlers('announcements');
 export const blogPostsHandlers = createCRUDHandlers('blog_posts');
 export const marketAnalysisHandlers = createCRUDHandlers('market_analysis');
 export const testimonialsHandlers = createCRUDHandlers('testimonials');
+
+export const ensureStorageBucket = asyncHandler(async (req, res) => {
+  const { name } = req.body || {};
+  const bucketName = name || 'course-materials';
+
+  try {
+    const existed = await ensureBucketExists(bucketName);
+
+    res.json({
+      success: true,
+      data: { bucket: bucketName, existed },
+    });
+  } catch (error) {
+    logger.error('Error ensuring storage bucket:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to verify storage bucket',
+    });
+  }
+});
+
+export const uploadResourceFile = asyncHandler(async (req, res) => {
+  const bucketName = req.query.bucket || req.headers['x-bucket-name'] || 'course-materials';
+  const originalName = req.headers['x-file-name'] || 'resource';
+  const safeName = String(originalName).replace(/[^a-zA-Z0-9.\-_]/g, '_');
+  const filePath = `resources/${Date.now()}-${safeName}`;
+  const contentType = req.headers['content-type'] || 'application/octet-stream';
+
+  if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'File payload is required',
+    });
+  }
+
+  try {
+    await ensureBucketExists(bucketName);
+  } catch (error) {
+    logger.error('Error ensuring storage bucket for upload:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to prepare storage bucket',
+    });
+  }
+
+  const { error } = await supabaseAdmin.storage
+    .from(bucketName)
+    .upload(filePath, req.body, {
+      contentType,
+      upsert: true,
+      cacheControl: '3600',
+    });
+
+  if (error) {
+    logger.error('Storage upload error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to upload resource file',
+    });
+  }
+
+  const { data } = supabaseAdmin.storage.from(bucketName).getPublicUrl(filePath);
+
+  res.json({
+    success: true,
+    data: {
+      url: data?.publicUrl || null,
+      path: filePath,
+      bucket: bucketName,
+    },
+  });
+});
 
 /**
  * Get list of students with pagination and search

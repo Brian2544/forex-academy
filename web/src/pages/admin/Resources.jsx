@@ -22,6 +22,13 @@ const Resources = () => {
       return response.data;
     }
   });
+  const { data: coursesData } = useQuery({
+    queryKey: ['admin-courses'],
+    queryFn: async () => {
+      const response = await api.get('/admin/courses');
+      return response.data;
+    }
+  });
 
   const deleteMutation = useMutation({
     mutationFn: async (id) => {
@@ -48,6 +55,8 @@ const Resources = () => {
   };
 
   const resources = data?.data || [];
+  const courses = coursesData?.data || [];
+  const courseMap = new Map(courses.map((course) => [course.id, course]));
   const pagination = data?.pagination || {};
 
   return (
@@ -119,6 +128,11 @@ const Resources = () => {
                     <div>
                       <h3 className="font-semibold text-gray-900">{resource.title}</h3>
                       <p className="text-sm text-gray-500 capitalize">{resource.type}</p>
+                      {resource.course_id && courseMap.get(resource.course_id) && (
+                        <p className="text-xs text-gray-400">
+                          Course: {courseMap.get(resource.course_id).title}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -154,6 +168,7 @@ const Resources = () => {
 
       {showCreateModal && (
         <CreateResourceModal
+          courses={courses}
           onClose={() => {
             setShowCreateModal(false);
             queryClient.invalidateQueries(['admin-resources']);
@@ -164,11 +179,15 @@ const Resources = () => {
   );
 };
 
-const CreateResourceModal = ({ onClose }) => {
+const CreateResourceModal = ({ onClose, courses }) => {
   const [title, setTitle] = useState('');
   const [type, setType] = useState('link');
   const [url, setUrl] = useState('');
+  const [courseId, setCourseId] = useState('');
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
+  const storageBucket = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'course-materials';
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
@@ -185,9 +204,49 @@ const CreateResourceModal = ({ onClose }) => {
     }
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    createMutation.mutate({ title, type, url: url || undefined });
+    if (type === 'link') {
+      if (!url) {
+        toast.error('Please provide a valid URL');
+        return;
+      }
+      createMutation.mutate({ title, type, url, course_id: courseId || undefined });
+      return;
+    }
+
+    if (!file) {
+      toast.error('Please select a file to upload');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const uploadResponse = await api.post('/admin/resources/upload', file, {
+        headers: {
+          'Content-Type': file.type || 'application/octet-stream',
+          'x-file-name': file.name,
+          'x-bucket-name': storageBucket,
+        },
+        transformRequest: [(data) => data],
+        timeout: 120000,
+      });
+
+      const publicUrl = uploadResponse.data?.data?.url;
+      if (!publicUrl) {
+        toast.error('Failed to get file URL');
+        return;
+      }
+
+      createMutation.mutate({
+        title,
+        type,
+        url: publicUrl,
+        course_id: courseId || undefined,
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -202,7 +261,7 @@ const CreateResourceModal = ({ onClose }) => {
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 placeholder-gray-500 bg-white"
             />
           </div>
           <div>
@@ -220,14 +279,55 @@ const CreateResourceModal = ({ onClose }) => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
-            <input
-              type="url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://example.com/resource"
+            <label className="block text-sm font-medium text-gray-700 mb-1">Course (optional)</label>
+            <select
+              value={courseId}
+              onChange={(e) => setCourseId(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
+            >
+              <option value="">General Resource</option>
+              {courses?.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.title}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            {type === 'link' ? (
+              <>
+                <label className="block text-sm font-medium text-gray-700 mb-1">URL *</label>
+                <input
+                  type="url"
+                  required
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://example.com/resource"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 placeholder-gray-500 bg-white"
+                />
+              </>
+            ) : (
+              <>
+                <label className="block text-sm font-medium text-gray-700 mb-1">File *</label>
+                <input
+                  type="file"
+                  accept={
+                    type === 'document'
+                      ? '.pdf,.doc,.docx,.ppt,.pptx'
+                      : type === 'video'
+                        ? '.mp4,.mov,.avi,.webm'
+                        : type === 'image'
+                          ? '.png,.jpg,.jpeg,.gif,.webp'
+                          : '*/*'
+                  }
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 bg-white"
+                />
+                {file && (
+                  <p className="mt-2 text-xs text-gray-500">Selected: {file.name}</p>
+                )}
+              </>
+            )}
           </div>
           <div className="flex gap-2">
             <button
@@ -239,10 +339,10 @@ const CreateResourceModal = ({ onClose }) => {
             </button>
             <button
               type="submit"
-              disabled={createMutation.isLoading}
+              disabled={createMutation.isLoading || uploading}
               className="flex-1 px-4 py-2 bg-gradient-to-r from-orange-500 to-green-500 text-white rounded-lg hover:from-orange-600 hover:to-green-600 disabled:opacity-50"
             >
-              {createMutation.isLoading ? 'Creating...' : 'Create'}
+              {uploading ? 'Uploading...' : createMutation.isLoading ? 'Creating...' : 'Create'}
             </button>
           </div>
         </form>

@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { getIcon } from '../../utils/icons';
+import { useParams } from 'react-router-dom';
+import DetailPageLayout from '../../components/dashboard/DetailPageLayout';
 
 const FAQs = () => {
-  const [openIndex, setOpenIndex] = useState(null);
+  const { topic } = useParams();
 
   const faqs = [
     {
@@ -31,41 +32,76 @@ const FAQs = () => {
     }
   ];
 
-  return (
-    <div className="min-h-screen bg-slate-900">
-      <div className="container mx-auto px-4 pt-24 pb-12">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold text-slate-100 mb-4">Frequently Asked Questions</h1>
-          <p className="text-slate-400 mb-8">
-            Find answers to the most common questions about forex trading, our academy, and what to expect.
-          </p>
+  // If a specific topic is requested, show only that FAQ
+  const filteredFAQs = topic 
+    ? faqs.filter((faq, idx) => {
+        const topicMap = {
+          'myths': 0,
+          'scam-awareness': 1,
+          'risky': 2,
+          'who-is-this-for': 3,
+          'guarantee': 4,
+          'results': 5
+        };
+        return idx === topicMap[topic];
+      })
+    : faqs;
 
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <div key={index} className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden hover:border-amber-500/50 transition-all">
+  // Auto-open the FAQ if a specific topic is requested
+  const initialOpenIndex = topic 
+    ? faqs.findIndex((faq, idx) => {
+        const topicMap = {
+          'myths': 0,
+          'scam-awareness': 1,
+          'risky': 2,
+          'who-is-this-for': 3,
+          'guarantee': 4,
+          'results': 5
+        };
+        return idx === topicMap[topic];
+      })
+    : null;
+
+  const [openIndex, setOpenIndex] = useState(initialOpenIndex);
+
+  return (
+    <DetailPageLayout title={topic ? faqs[filteredFAQs[0]?.question]?.question || "FAQ" : "Frequently Asked Questions"} iconName="faq">
+      <div className="space-y-6">
+        {!topic && (
+          <div>
+            <p className="text-gray-300 mb-4">
+              Find answers to the most common questions about forex trading, our academy, and what to expect.
+            </p>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          {filteredFAQs.map((faq, index) => {
+            const actualIndex = topic ? faqs.indexOf(faq) : index;
+            return (
+              <div key={actualIndex} className="bg-[#0B1220] border border-[rgba(255,255,255,0.08)] rounded-lg overflow-hidden hover:border-amber-500/50 transition-all">
                 <button
-                  onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                  className="w-full p-6 text-left flex justify-between items-center hover:bg-slate-700/50 transition-colors"
+                  onClick={() => setOpenIndex(openIndex === actualIndex ? null : actualIndex)}
+                  className="w-full p-6 text-left flex justify-between items-center hover:bg-[rgba(255,255,255,0.05)] transition-colors"
                 >
-                  <h3 className="text-lg font-semibold text-slate-100 pr-4">{faq.question}</h3>
+                  <h3 className="text-lg font-semibold text-white pr-4">{faq.question}</h3>
                   <span className={`text-2xl flex-shrink-0 transition-transform text-amber-400 ${
-                    openIndex === index ? 'rotate-180' : ''
+                    openIndex === actualIndex ? 'rotate-180' : ''
                   }`}>
-                    {openIndex === index ? '−' : '+'}
+                    {openIndex === actualIndex ? '−' : '+'}
                   </span>
                 </button>
-                {openIndex === index && (
-                  <div className="px-6 pb-6 bg-slate-700/30">
-                    <p className="text-slate-300 leading-relaxed">{faq.answer}</p>
+                {openIndex === actualIndex && (
+                  <div className="px-6 pb-6 bg-[rgba(255,255,255,0.03)]">
+                    <p className="text-gray-300 leading-relaxed">{faq.answer}</p>
                   </div>
                 )}
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
-      <Footer />
-    </div>
+    </DetailPageLayout>
   );
 };
 

@@ -201,6 +201,7 @@ async function setupDatabaseV2() {
     'app_settings',
     'courses',
     'lessons',
+    'resources',
     'live_sessions',
     'announcements',
     'blog_posts',

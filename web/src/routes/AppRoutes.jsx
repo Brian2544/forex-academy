@@ -24,6 +24,7 @@ import Disclaimer from '../pages/legal/Disclaimer';
 
 // Admin Pages
 import AdminOverview from '../pages/admin/Overview';
+import AdminCourses from '../pages/admin/Courses';
 import Students from '../pages/admin/Students';
 import Groups from '../pages/admin/Groups';
 import ChatMonitor from '../pages/admin/ChatMonitor';
@@ -46,6 +47,23 @@ import InstructorDashboard from '../pages/instructor/InstructorDashboard';
 import StudentFAQs from '../pages/student/FAQs';
 import StudentContact from '../pages/student/Contact';
 import StudentTestimonials from '../pages/student/Testimonials';
+import StudentMarketAnalysis from '../pages/student/MarketAnalysis';
+import StudentAnnouncements from '../pages/student/Announcements';
+import StudentBlog from '../pages/student/Blog';
+import BlogPost from '../pages/student/BlogPost';
+import StudentReferral from '../pages/student/Referral';
+import StudentLiveClasses from '../pages/student/LiveClasses';
+import StudentResources from '../pages/student/Resources';
+import StudentProfile from '../pages/student/Profile';
+import ChatGroups from '../pages/student/ChatGroups';
+import ChatGroupDetail from '../pages/student/ChatGroupDetail';
+import TestimonialsStories from '../pages/student/TestimonialsStories';
+import TestimonialsScreenshots from '../pages/student/TestimonialsScreenshots';
+import TestimonialsVideos from '../pages/student/TestimonialsVideos';
+import BeginnerCourse from '../pages/dashboard/BeginnerCourse';
+import IntermediateCourse from '../pages/dashboard/IntermediateCourse';
+import AdvancedCourse from '../pages/dashboard/AdvancedCourse';
+import NotFound from '../pages/NotFound';
 
 const AppRoutes = () => {
   return (
@@ -102,6 +120,7 @@ const AppRoutes = () => {
         >
           <Route index element={<Navigate to="/admin/overview" replace />} />
           <Route path="overview" element={<AdminOverview />} />
+          <Route path="courses" element={<AdminCourses />} />
           <Route path="students" element={<Students />} />
           <Route path="students/:id" element={<Students />} />
           <Route path="groups" element={<Groups />} />
@@ -134,11 +153,29 @@ const AppRoutes = () => {
           }
         />
 
-        {/* Student Routes */}
+        {/* Student Routes - More specific routes must come before general ones */}
         <Route path="/student/dashboard" element={<StudentDashboard />} />
+        <Route path="/student/faqs/:topic" element={<StudentFAQs />} />
         <Route path="/student/faqs" element={<StudentFAQs />} />
         <Route path="/student/contact" element={<StudentContact />} />
+        <Route path="/student/testimonials/stories" element={<TestimonialsStories />} />
+        <Route path="/student/testimonials/screenshots" element={<TestimonialsScreenshots />} />
+        <Route path="/student/testimonials/videos" element={<TestimonialsVideos />} />
         <Route path="/student/testimonials" element={<StudentTestimonials />} />
+        <Route path="/student/courses/beginner" element={<BeginnerCourse />} />
+        <Route path="/student/courses/intermediate" element={<IntermediateCourse />} />
+        <Route path="/student/courses/advanced" element={<AdvancedCourse />} />
+        <Route path="/student/market-analysis" element={<StudentMarketAnalysis />} />
+        <Route path="/student/announcements" element={<StudentAnnouncements />} />
+        <Route path="/student/blog/:id" element={<BlogPost />} />
+        <Route path="/student/blog" element={<StudentBlog />} />
+        <Route path="/student/referral" element={<StudentReferral />} />
+        <Route path="/student/live-classes" element={<StudentLiveClasses />} />
+        <Route path="/student/resources" element={<StudentResources />} />
+        <Route path="/student/profile/edit" element={<StudentProfile />} />
+        <Route path="/student/profile" element={<StudentProfile />} />
+        <Route path="/chat/groups/:id" element={<ChatGroupDetail />} />
+        <Route path="/chat/groups" element={<ChatGroups />} />
 
         {/* Billing Route - Protected but no role check */}
         <Route path="/billing" element={<Billing />} />
@@ -146,8 +183,8 @@ const AppRoutes = () => {
         <Route path="/billing/callback" element={<Billing />} />
       </Route>
 
-      {/* 404 */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* 404 - Must be last */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

@@ -156,6 +156,37 @@ export const getLessons = asyncHandler(async (req, res) => {
   });
 });
 
+export const getResources = asyncHandler(async (req, res) => {
+  const { type, course_id } = req.query;
+  let query = supabaseAdmin
+    .from('resources')
+    .select('*')
+    .eq('is_active', true);
+
+  if (type) {
+    query = query.eq('type', type);
+  }
+
+  if (course_id) {
+    query = query.eq('course_id', course_id);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
+
+  if (error) {
+    logger.error('Error fetching resources:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch resources',
+    });
+  }
+
+  res.json({
+    success: true,
+    data: data || [],
+  });
+});
+
 export const getLiveSessions = asyncHandler(async (req, res) => {
   const { data, error } = await supabaseAdmin
     .from('live_sessions')

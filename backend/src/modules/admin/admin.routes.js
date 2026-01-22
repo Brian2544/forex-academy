@@ -7,11 +7,14 @@ import {
   updateSettings,
   coursesHandlers,
   lessonsHandlers,
+  resourcesHandlers,
   liveSessionsHandlers,
   announcementsHandlers,
   blogPostsHandlers,
   marketAnalysisHandlers,
   testimonialsHandlers,
+  ensureStorageBucket,
+  uploadResourceFile,
   overrideSubscription,
   getStudents,
   getStudentById,
@@ -38,6 +41,10 @@ router.get('/students/:id', getStudentById);
 router.get('/settings', getSettings);
 router.patch('/settings', updateSettings);
 
+// Storage
+router.post('/storage/bucket', ensureStorageBucket);
+router.post('/resources/upload', express.raw({ type: '*/*', limit: '100mb' }), uploadResourceFile);
+
 // Courses CRUD
 router.get('/courses', coursesHandlers.list);
 router.get('/courses/:id', coursesHandlers.get);
@@ -51,6 +58,13 @@ router.get('/lessons/:id', lessonsHandlers.get);
 router.post('/lessons', lessonsHandlers.create);
 router.patch('/lessons/:id', lessonsHandlers.update);
 router.delete('/lessons/:id', lessonsHandlers.delete);
+
+// Resources CRUD
+router.get('/resources', resourcesHandlers.list);
+router.get('/resources/:id', resourcesHandlers.get);
+router.post('/resources', resourcesHandlers.create);
+router.patch('/resources/:id', resourcesHandlers.update);
+router.delete('/resources/:id', resourcesHandlers.delete);
 
 // Live Sessions CRUD
 router.get('/live-sessions', liveSessionsHandlers.list);

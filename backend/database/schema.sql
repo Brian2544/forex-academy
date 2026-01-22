@@ -76,9 +76,23 @@ CREATE TABLE IF NOT EXISTS lessons (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   course_id UUID REFERENCES courses(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
+  level TEXT CHECK (level IN ('beginner', 'intermediate', 'advanced')),
   content TEXT,
   video_url TEXT,
+  published BOOLEAN DEFAULT false,
   order_index INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Resources table (course materials)
+CREATE TABLE IF NOT EXISTS resources (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  course_id UUID REFERENCES courses(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('document', 'video', 'image', 'link', 'other')),
+  url TEXT NOT NULL,
+  is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -175,6 +189,8 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
 CREATE INDEX IF NOT EXISTS idx_payment_events_provider_event ON payment_events(provider, event_id);
 CREATE INDEX IF NOT EXISTS idx_lessons_course_id ON lessons(course_id);
+CREATE INDEX IF NOT EXISTS idx_resources_course_id ON resources(course_id);
+CREATE INDEX IF NOT EXISTS idx_resources_type ON resources(type);
 CREATE INDEX IF NOT EXISTS idx_live_sessions_scheduled_at ON live_sessions(scheduled_at);
 CREATE INDEX IF NOT EXISTS idx_chat_messages_group_id ON chat_messages(group_id);
 CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at ON chat_messages(created_at);

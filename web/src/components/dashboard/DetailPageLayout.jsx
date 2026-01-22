@@ -1,16 +1,12 @@
 import { Link } from 'react-router-dom';
-import Navbar from '../common/Navbar';
-import Footer from '../common/Footer';
-import WhatsAppButton from '../common/WhatsAppButton';
 import { getIcon } from '../../utils/icons';
 
-const DetailPageLayout = ({ title, icon, iconName, children, backLink = '/dashboard' }) => {
+const DetailPageLayout = ({ title, icon, iconName, children, backLink = '/student/dashboard' }) => {
   const IconComponent = iconName ? getIcon(iconName) : null;
   return (
     <div className="min-h-screen bg-[#0A0E1A]">
-      <Navbar />
-      
-      <div className="container mx-auto px-4 pt-24 pb-12">
+      {/* Navbar and Footer are provided by ProtectedLayout - no duplicates */}
+      <div className="container mx-auto px-4 pt-8 pb-12">
         {/* Header */}
         <div className="mb-8">
           <Link
@@ -45,9 +41,6 @@ const DetailPageLayout = ({ title, icon, iconName, children, backLink = '/dashbo
           {children}
         </div>
       </div>
-
-      <Footer />
-      <WhatsAppButton />
     </div>
   );
 };

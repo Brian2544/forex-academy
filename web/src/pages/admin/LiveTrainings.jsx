@@ -16,14 +16,14 @@ const LiveTrainings = () => {
     queryFn: async () => {
       const params = new URLSearchParams({ page, limit: 20 });
       if (statusFilter) params.append('status', statusFilter);
-      const response = await api.get(`/admin/live-trainings?${params}`);
+      const response = await api.get(`/admin/live-sessions?${params}`);
       return response.data;
     }
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id) => {
-      const response = await api.delete(`/admin/live-trainings/${id}`);
+      const response = await api.delete(`/admin/live-sessions/${id}`);
       return response.data;
     },
     onSuccess: () => {
@@ -37,6 +37,11 @@ const LiveTrainings = () => {
 
   const trainings = data?.data || [];
   const pagination = data?.pagination || {};
+  const getStatus = (training) => {
+    if (training.status) return training.status;
+    if (!training.scheduled_at) return 'scheduled';
+    return new Date(training.scheduled_at) > new Date() ? 'scheduled' : 'completed';
+  };
 
   return (
     <div className="space-y-6">
@@ -102,28 +107,35 @@ const LiveTrainings = () => {
                     <tr key={training.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-4 px-6 text-sm text-gray-900">{training.title}</td>
                       <td className="py-4 px-6 text-sm text-gray-600">
-                        {training.host?.first_name} {training.host?.last_name}
+                        {training.host?.first_name
+                          ? `${training.host.first_name} ${training.host?.last_name || ''}`.trim()
+                          : '—'}
                       </td>
                       <td className="py-4 px-6 text-sm text-gray-600">
-                        {format(new Date(training.scheduled_for), 'MMM d, yyyy HH:mm')}
+                        {training.scheduled_at ? format(new Date(training.scheduled_at), 'MMM d, yyyy HH:mm') : '—'}
                       </td>
                       <td className="py-4 px-6">
+                        {(() => {
+                          const status = getStatus(training);
+                          return (
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                            training.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                            training.status === 'ongoing' ? 'bg-green-100 text-green-800' :
-                            training.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                            status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                            status === 'ongoing' ? 'bg-green-100 text-green-800' :
+                            status === 'completed' ? 'bg-gray-100 text-gray-800' :
                             'bg-red-100 text-red-800'
                           }`}
                         >
-                          {training.status}
+                          {status}
                         </span>
+                          );
+                        })()}
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex gap-2">
-                          {training.meeting_link && (
+                          {(training.meeting_link || training.meeting_url) && (
                             <a
-                              href={training.meeting_link}
+                              href={training.meeting_link || training.meeting_url}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-orange-600 hover:text-orange-700 text-sm"
@@ -173,7 +185,7 @@ const CreateTrainingModal = ({ onClose }) => {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const response = await api.post('/admin/live-trainings', data);
+      const response = await api.post('/admin/live-sessions', data);
       return response.data;
     },
     onSuccess: () => {
@@ -191,8 +203,8 @@ const CreateTrainingModal = ({ onClose }) => {
     createMutation.mutate({
       title,
       description,
-      scheduled_for: new Date(scheduledFor).toISOString(),
-      meeting_link: meetingLink || undefined
+      scheduled_at: new Date(scheduledFor).toISOString(),
+      meeting_url: meetingLink || undefined
     });
   };
 

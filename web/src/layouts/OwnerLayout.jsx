@@ -56,6 +56,7 @@ const OwnerLayout = () => {
         { icon: UsersRound, label: 'Groups', path: '/admin/groups', permission: PERMISSIONS.MANAGE_GROUPS },
         { icon: MessageSquare, label: 'Chat Monitor', path: '/admin/chat-monitor', permission: PERMISSIONS.MANAGE_CHAT },
         { icon: Video, label: 'Live Trainings', path: '/admin/live-trainings', permission: PERMISSIONS.MANAGE_LIVE_TRAININGS },
+        { icon: BookOpen, label: 'Courses', path: '/admin/courses', permission: PERMISSIONS.MANAGE_COURSES },
         { icon: BookOpen, label: 'Lessons', path: '/admin/lessons', permission: PERMISSIONS.MANAGE_LESSONS },
         { icon: Folder, label: 'Resources', path: '/admin/resources', permission: PERMISSIONS.MANAGE_RESOURCES },
         { icon: TrendingUp, label: 'Signals', path: '/admin/signals', permission: PERMISSIONS.MANAGE_SIGNALS },

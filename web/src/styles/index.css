@@ -137,6 +137,24 @@
     border-color: var(--ring);
     box-shadow: 0 0 0 3px rgba(216, 181, 71, 0.2);
   }
+
+  input,
+  textarea,
+  [contenteditable="true"] {
+    color: inherit;
+    caret-color: currentColor;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--text-2);
+    opacity: 1;
+  }
+
+  .bg-white input,
+  .bg-white textarea {
+    color: #111827;
+  }
 }
 
 /* ============================================
