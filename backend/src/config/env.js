@@ -13,6 +13,13 @@ dotenv.config({ path: join(__dirname, '..', 'config', 'local.env'), override: tr
 
 // Ensure OWNER_EMAILS is available (don't crash if absent)
 const ownerEmails = process.env.OWNER_EMAILS || '';
+const parsePaystackChannels = (value) => {
+  if (!value) return [];
+  return value
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+};
 
 export const config = {
   port: process.env.PORT || 4000,
@@ -28,6 +35,7 @@ export const config = {
     publicKey: (process.env.PAYSTACK_PUBLIC_KEY || '').trim(),
     currency: (process.env.PAYSTACK_CURRENCY || 'KES').trim().toUpperCase(),
     accessDays: Number(process.env.PAYSTACK_ACCESS_DAYS || 365),
+    channels: parsePaystackChannels(process.env.PAYSTACK_CHANNELS),
   },
   appBaseUrl: process.env.APP_BASE_URL || 'http://localhost:3000',
 };

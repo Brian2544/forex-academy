@@ -120,6 +120,15 @@ const resolveAccessDays = (course) => {
   return Number(config.paystack.accessDays || 365);
 };
 
+const getChannelErrorMessage = (paystackError) => {
+  const message = (paystackError?.message || '').toLowerCase();
+  if (!message) return '';
+  if (message.includes('channel')) {
+    return 'Payment channel configuration rejected by Paystack. Please check enabled channels for this merchant.';
+  }
+  return '';
+};
+
 const getPaymentIntentByReference = async (reference) => {
   if (!reference) return null;
   const { data, error } = await supabaseAdmin
@@ -405,6 +414,18 @@ export const checkout = asyncHandler(async (req, res) => {
     } else {
       // For one-time payments, use transaction initialization
       const amountInCents = Math.round(plan.price_usd * 100);
+      if (process.env.NODE_ENV !== 'production') {
+        logger.info('Paystack checkout init payload', {
+          amount: amountInCents,
+          currency: config.paystack.currency || 'KES',
+          email,
+          callback_url: `${config.appBaseUrl}/billing/callback`,
+          metadataKeys: ['userId', 'planId', 'planName'],
+          channels: Array.isArray(config.paystack.channels) && config.paystack.channels.length > 0
+            ? config.paystack.channels
+            : null,
+        });
+      }
       const paystackResponse = await paystack.initializeTransaction({
         amount: amountInCents,
         email,
@@ -430,10 +451,19 @@ export const checkout = asyncHandler(async (req, res) => {
       }
     }
   } catch (error) {
-    logger.error('Paystack checkout error:', error);
+    const paystackError = error.response?.data;
+    logger.error('Paystack checkout error:', paystackError || error.message);
+    const channelMessage = getChannelErrorMessage(paystackError);
+    if (channelMessage) {
+      return res.status(400).json({
+        success: false,
+        code: 'INVALID_CHANNELS',
+        message: channelMessage,
+      });
+    }
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to initialize payment',
+      message: paystackError?.message || error.message || 'Failed to initialize payment',
     });
   }
 });
@@ -662,6 +692,19 @@ export const initializeCoursePayment = asyncHandler(async (req, res) => {
     });
   }
 
+  if (process.env.NODE_ENV !== 'production') {
+    logger.info('Paystack course init payload', {
+      amount: amountMinor,
+      currency,
+      email: userEmail,
+      callback_url: `${config.appBaseUrl}/payments/status`,
+      metadataKeys: ['user_id', 'email', 'course_id', 'course_title', 'course_level'],
+      channels: Array.isArray(config.paystack.channels) && config.paystack.channels.length > 0
+        ? config.paystack.channels
+        : null,
+    });
+  }
+
   try {
     const response = await paystack.initializeTransaction({
       amount: amountMinor,
@@ -709,6 +752,14 @@ export const initializeCoursePayment = asyncHandler(async (req, res) => {
   } catch (error) {
     const paystackError = error.response?.data;
     logger.error('Paystack course initialize error:', paystackError || error.message);
+    const channelMessage = getChannelErrorMessage(paystackError);
+    if (channelMessage) {
+      return res.status(400).json({
+        success: false,
+        code: 'INVALID_CHANNELS',
+        message: channelMessage,
+      });
+    }
     if (paystackError?.code === 'unsupported_currency') {
       return res.status(400).json({
         success: false,

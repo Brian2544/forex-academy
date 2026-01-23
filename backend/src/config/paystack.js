@@ -43,15 +43,21 @@ export const paystack = {
         };
       }
 
+      const payload = {
+        amount: data.amount, // in kobo
+        email: data.email,
+        currency: data.currency || config.paystack.currency || 'KES',
+        callback_url: data.callback_url,
+        metadata: data.metadata,
+      };
+
+      if (Array.isArray(config.paystack.channels) && config.paystack.channels.length > 0) {
+        payload.channels = config.paystack.channels;
+      }
+
       const response = await axios.post(
         `${PAYSTACK_BASE_URL}/transaction/initialize`,
-        {
-          amount: data.amount, // in kobo
-          email: data.email,
-          currency: data.currency || config.paystack.currency || 'KES',
-          callback_url: data.callback_url,
-          metadata: data.metadata,
-        },
+        payload,
         {
           headers: {
             Authorization: `Bearer ${getSecretKey()}`,
