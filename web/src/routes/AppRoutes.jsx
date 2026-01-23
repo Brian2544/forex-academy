@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '../components/guards/ProtectedRoute';
 import RoleRoute from '../components/guards/RoleRoute';
 import OnboardingGuard from '../components/guards/OnboardingGuard';
+import CourseAccessRoute from '../components/guards/CourseAccessRoute';
 
 // Layouts
 import PublicLayout from '../layouts/PublicLayout';
@@ -37,6 +38,7 @@ import Finance from '../pages/admin/Finance';
 import Settings from '../pages/admin/Settings';
 import AdminUsers from '../pages/admin/AdminUsers';
 import Billing from '../pages/Billing';
+import PaymentStatus from '../pages/PaymentStatus';
 
 // Owner Pages
 import OwnerDashboard from '../pages/owner/OwnerDashboard';
@@ -162,9 +164,30 @@ const AppRoutes = () => {
         <Route path="/student/testimonials/screenshots" element={<TestimonialsScreenshots />} />
         <Route path="/student/testimonials/videos" element={<TestimonialsVideos />} />
         <Route path="/student/testimonials" element={<StudentTestimonials />} />
-        <Route path="/student/courses/beginner" element={<BeginnerCourse />} />
-        <Route path="/student/courses/intermediate" element={<IntermediateCourse />} />
-        <Route path="/student/courses/advanced" element={<AdvancedCourse />} />
+        <Route
+          path="/student/courses/beginner"
+          element={
+            <CourseAccessRoute courseLevel="beginner">
+              <BeginnerCourse />
+            </CourseAccessRoute>
+          }
+        />
+        <Route
+          path="/student/courses/intermediate"
+          element={
+            <CourseAccessRoute courseLevel="intermediate">
+              <IntermediateCourse />
+            </CourseAccessRoute>
+          }
+        />
+        <Route
+          path="/student/courses/advanced"
+          element={
+            <CourseAccessRoute courseLevel="advanced">
+              <AdvancedCourse />
+            </CourseAccessRoute>
+          }
+        />
         <Route path="/student/market-analysis" element={<StudentMarketAnalysis />} />
         <Route path="/student/announcements" element={<StudentAnnouncements />} />
         <Route path="/student/blog/:id" element={<BlogPost />} />
@@ -181,6 +204,11 @@ const AppRoutes = () => {
         <Route path="/billing" element={<Billing />} />
         <Route path="/billing/success" element={<Billing />} />
         <Route path="/billing/callback" element={<Billing />} />
+      </Route>
+
+      {/* Public payment status route (handles its own auth) */}
+      <Route element={<PublicLayout />}>
+        <Route path="/payments/status" element={<PaymentStatus />} />
       </Route>
 
       {/* 404 - Must be last */}

@@ -1,7 +1,7 @@
 import express from 'express';
 import { requireAuth } from '../../middleware/requireAuth.js';
-import { getPlans, checkout, verify, getMySubscription } from './payments.controller.js';
-import { handleWebhook } from './payments.webhook.js';
+import { getPlans, checkout, verify, getMySubscription, initializeCoursePayment, verifyCoursePayment, getMyEntitlements, getPaystackPublicKey } from './payments.controller.js';
+import { handleWebhook, handleCoursePaymentWebhook } from './payments.webhook.js';
 
 const router = express.Router();
 
@@ -10,6 +10,7 @@ const router = express.Router();
 // Note: express.raw() is applied in app.js before express.json() for this route
 // The handler will use the raw buffer for signature verification
 router.post('/webhook', handleWebhook);
+router.post('/paystack/webhook', handleCoursePaymentWebhook);
 
 // GET /billing/plans - Get available plans
 router.get('/plans', getPlans);
@@ -22,6 +23,12 @@ router.get('/verify', requireAuth, verify);
 
 // POST /payments/checkout - Initialize payment/subscription
 router.post('/checkout', requireAuth, checkout);
+
+// Paystack course payments
+router.post('/paystack/initialize', requireAuth, initializeCoursePayment);
+router.get('/paystack/verify/:reference', requireAuth, verifyCoursePayment);
+router.get('/paystack/entitlements', requireAuth, getMyEntitlements);
+router.get('/paystack/public-key', getPaystackPublicKey);
 
 export default router;
 

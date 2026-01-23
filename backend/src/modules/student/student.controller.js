@@ -2,17 +2,46 @@ import { supabaseAdmin } from '../../config/supabaseAdmin.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { logger } from '../../utils/logger.js';
 
+const ADMIN_ROLES = new Set([
+  'admin',
+  'super_admin',
+  'owner',
+  'content_admin',
+  'support_admin',
+  'finance_admin',
+]);
+
+const getUserRole = async (userId) => {
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .maybeSingle();
+  return profile?.role || 'student';
+};
+
+const isAdminRole = (role) => ADMIN_ROLES.has((role || '').toLowerCase());
+
+const getEntitledCourseIds = async (userId) => {
+  const now = new Date().toISOString();
+  const { data: entitlements } = await supabaseAdmin
+    .from('entitlements')
+    .select('course_id, expires_at, status')
+    .eq('user_id', userId)
+    .eq('active', true);
+  return (entitlements || [])
+    .filter((entitlement) => entitlement.status !== 'expired')
+    .filter((entitlement) => !entitlement.expires_at || entitlement.expires_at > now)
+    .map((entitlement) => entitlement.course_id);
+};
+
 export const getDashboard = asyncHandler(async (req, res) => {
   const userId = req.userId;
 
-  // Get subscription status
-  const { data: subscription } = await supabaseAdmin
-    .from('subscriptions')
-    .select('status, current_period_end')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const userRole = await getUserRole(userId);
+  const isAdmin = isAdminRole(userRole);
+  const entitledCourseIds = isAdmin ? [] : await getEntitledCourseIds(userId);
+  const hasAccess = isAdmin || entitledCourseIds.length > 0;
 
   // Get app settings (WhatsApp URL)
   const { data: settings } = await supabaseAdmin
@@ -30,7 +59,7 @@ export const getDashboard = asyncHandler(async (req, res) => {
 
   let next_sessions = [];
 
-  if (subscription?.status === 'active') {
+  if (hasAccess) {
     // Count new lessons (created in last 7 days)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -72,7 +101,7 @@ export const getDashboard = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: {
-      access: subscription?.status || 'inactive',
+      access: hasAccess ? 'active' : 'inactive',
       whatsapp_channel_url: settings?.whatsapp_channel_url || null,
       counts,
       next_sessions,
@@ -82,6 +111,10 @@ export const getDashboard = asyncHandler(async (req, res) => {
 
 // Student content handlers (all require active subscription via middleware)
 export const getCourses = asyncHandler(async (req, res) => {
+  const userRole = await getUserRole(req.userId);
+  const isAdmin = isAdminRole(userRole);
+  const entitledCourseIds = isAdmin ? [] : await getEntitledCourseIds(req.userId);
+
   const { level } = req.query;
   let query = supabaseAdmin
     .from('courses')
@@ -102,14 +135,40 @@ export const getCourses = asyncHandler(async (req, res) => {
     });
   }
 
+  const enrichedCourses = (data || []).map((course) => ({
+    ...course,
+    isEntitled: isAdmin ? true : entitledCourseIds.includes(course.id),
+  }));
+
   res.json({
     success: true,
-    data: data || [],
+    data: enrichedCourses,
   });
 });
 
 export const getCourse = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const userRole = await getUserRole(req.userId);
+  const isAdmin = isAdminRole(userRole);
+
+  if (!isAdmin) {
+    const { data: entitlement } = await supabaseAdmin
+      .from('entitlements')
+      .select('id')
+      .eq('user_id', req.userId)
+      .eq('course_id', id)
+      .eq('active', true)
+      .maybeSingle();
+
+    if (!entitlement) {
+      return res.status(402).json({
+        success: false,
+        message: 'Course payment required',
+        code: 'COURSE_PAYMENT_REQUIRED',
+      });
+    }
+  }
+
   const { data, error } = await supabaseAdmin
     .from('courses')
     .select('*, lessons(*)')
@@ -132,12 +191,40 @@ export const getCourse = asyncHandler(async (req, res) => {
 
 export const getLessons = asyncHandler(async (req, res) => {
   const { courseId } = req.query;
+  const userRole = await getUserRole(req.userId);
+  const isAdmin = isAdminRole(userRole);
   let query = supabaseAdmin
     .from('lessons')
     .select('*');
 
   if (courseId) {
+    if (!isAdmin) {
+      const { data: entitlement } = await supabaseAdmin
+        .from('entitlements')
+        .select('id')
+        .eq('user_id', req.userId)
+        .eq('course_id', courseId)
+        .eq('active', true)
+        .maybeSingle();
+
+      if (!entitlement) {
+        return res.status(402).json({
+          success: false,
+          message: 'Course payment required',
+          code: 'COURSE_PAYMENT_REQUIRED',
+        });
+      }
+    }
     query = query.eq('course_id', courseId);
+  } else if (!isAdmin) {
+    const entitledCourseIds = await getEntitledCourseIds(req.userId);
+    if (entitledCourseIds.length === 0) {
+      return res.json({
+        success: true,
+        data: [],
+      });
+    }
+    query = query.in('course_id', entitledCourseIds);
   }
 
   const { data, error } = await query.order('order_index', { ascending: true });
@@ -158,6 +245,8 @@ export const getLessons = asyncHandler(async (req, res) => {
 
 export const getResources = asyncHandler(async (req, res) => {
   const { type, course_id } = req.query;
+  const userRole = await getUserRole(req.userId);
+  const isAdmin = isAdminRole(userRole);
   let query = supabaseAdmin
     .from('resources')
     .select('*')
@@ -168,7 +257,33 @@ export const getResources = asyncHandler(async (req, res) => {
   }
 
   if (course_id) {
+    if (!isAdmin) {
+      const { data: entitlement } = await supabaseAdmin
+        .from('entitlements')
+        .select('id')
+        .eq('user_id', req.userId)
+        .eq('course_id', course_id)
+        .eq('active', true)
+        .maybeSingle();
+
+      if (!entitlement) {
+        return res.status(402).json({
+          success: false,
+          message: 'Course payment required',
+          code: 'COURSE_PAYMENT_REQUIRED',
+        });
+      }
+    }
     query = query.eq('course_id', course_id);
+  } else if (!isAdmin) {
+    const entitledCourseIds = await getEntitledCourseIds(req.userId);
+    if (entitledCourseIds.length === 0) {
+      return res.json({
+        success: true,
+        data: [],
+      });
+    }
+    query = query.in('course_id', entitledCourseIds);
   }
 
   const { data, error } = await query.order('created_at', { ascending: false });

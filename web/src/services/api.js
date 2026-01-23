@@ -1,9 +1,15 @@
 import axios from 'axios';
+import { appEnv } from '../config/appEnv';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+const DEFAULT_API_BASE_URL = 'http://localhost:4000';
+const resolvedBaseUrl = appEnv.apiBaseUrl || DEFAULT_API_BASE_URL;
+
+if (import.meta.env.DEV) {
+  console.info('[API] Using base URL:', resolvedBaseUrl);
+}
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: resolvedBaseUrl,
   headers: {
     'Content-Type': 'application/json'
   },

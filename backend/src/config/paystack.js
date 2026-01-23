@@ -3,10 +3,17 @@ import { config } from './env.js';
 import { logger } from '../utils/logger.js';
 
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
+const mockTransactions = new Map();
+
+const getSecretKey = () => {
+  const envSecret = (process.env.PAYSTACK_SECRET_KEY || '').trim();
+  return envSecret || config.paystack.secretKey;
+};
 
 // Check if Paystack is configured
 const isPaystackConfigured = () => {
-  return !!(config.paystack.secretKey && config.paystack.secretKey !== 'your_paystack_secret_key_here');
+  const secretKey = getSecretKey();
+  return !!(secretKey && secretKey !== 'your_paystack_secret_key_here');
 };
 
 export const paystack = {
@@ -17,18 +24,37 @@ export const paystack = {
     }
 
     try {
+      if (config.paystack.mockMode) {
+        const reference = `mock_${Date.now()}`;
+        mockTransactions.set(reference, {
+          reference,
+          amount: data.amount,
+          currency: data.currency || 'NGN',
+          status: 'success',
+          metadata: data.metadata || {},
+          paid_at: new Date().toISOString(),
+        });
+        return {
+          status: true,
+          data: {
+            authorization_url: `https://paystack.com/pay/${reference}`,
+            reference,
+          },
+        };
+      }
+
       const response = await axios.post(
         `${PAYSTACK_BASE_URL}/transaction/initialize`,
         {
           amount: data.amount, // in kobo
           email: data.email,
-          currency: 'USD',
+          currency: data.currency || config.paystack.currency || 'KES',
           callback_url: data.callback_url,
           metadata: data.metadata,
         },
         {
           headers: {
-            Authorization: `Bearer ${config.paystack.secretKey}`,
+            Authorization: `Bearer ${getSecretKey()}`,
             'Content-Type': 'application/json',
           },
         }
@@ -47,11 +73,33 @@ export const paystack = {
     }
 
     try {
+      if (config.paystack.mockMode) {
+        const transaction = mockTransactions.get(reference);
+        if (!transaction) {
+          return {
+            status: false,
+            message: 'Mock reference not found',
+            data: { status: 'failed' },
+          };
+        }
+        return {
+          status: true,
+          data: {
+            reference,
+            amount: transaction.amount,
+            currency: transaction.currency,
+            status: 'success',
+            metadata: transaction.metadata,
+            paid_at: transaction.paid_at,
+          },
+        };
+      }
+
       const response = await axios.get(
         `${PAYSTACK_BASE_URL}/transaction/verify/${reference}`,
         {
           headers: {
-            Authorization: `Bearer ${config.paystack.secretKey}`,
+            Authorization: `Bearer ${getSecretKey()}`,
           },
         }
       );
@@ -78,7 +126,7 @@ export const paystack = {
         },
         {
           headers: {
-            Authorization: `Bearer ${config.paystack.secretKey}`,
+            Authorization: `Bearer ${getSecretKey()}`,
             'Content-Type': 'application/json',
           },
         }
@@ -91,7 +139,7 @@ export const paystack = {
           `${PAYSTACK_BASE_URL}/customer/${email}`,
           {
             headers: {
-              Authorization: `Bearer ${config.paystack.secretKey}`,
+              Authorization: `Bearer ${getSecretKey()}`,
             },
           }
         );
@@ -117,7 +165,7 @@ export const paystack = {
         },
         {
           headers: {
-            Authorization: `Bearer ${config.paystack.secretKey}`,
+            Authorization: `Bearer ${getSecretKey()}`,
             'Content-Type': 'application/json',
           },
         }
@@ -140,7 +188,7 @@ export const paystack = {
         `${PAYSTACK_BASE_URL}/subscription/${subscriptionCode}`,
         {
           headers: {
-            Authorization: `Bearer ${config.paystack.secretKey}`,
+            Authorization: `Bearer ${getSecretKey()}`,
           },
         }
       );
@@ -166,7 +214,7 @@ export const paystack = {
         },
         {
           headers: {
-            Authorization: `Bearer ${config.paystack.secretKey}`,
+            Authorization: `Bearer ${getSecretKey()}`,
             'Content-Type': 'application/json',
           },
         }

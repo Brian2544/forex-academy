@@ -4,8 +4,10 @@ import api from '../../services/api';
 import DetailPageLayout from '../../components/dashboard/DetailPageLayout';
 import Loader from '../../components/common/Loader';
 import { ExternalLink, FileText, Video, Image, Link as LinkIcon } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const Resources = () => {
+  const { profile } = useAuth();
   const [typeFilter, setTypeFilter] = useState('');
   const [courseFilter, setCourseFilter] = useState('');
 
@@ -30,6 +32,9 @@ const Resources = () => {
 
   const resources = resourcesData || [];
   const courses = coursesData || [];
+  const isPrivileged = ['admin', 'super_admin', 'owner', 'content_admin', 'support_admin', 'finance_admin']
+    .includes(profile?.role?.toLowerCase());
+  const visibleCourses = isPrivileged ? courses : courses.filter((course) => course.isEntitled);
   const courseMap = new Map(courses.map((course) => [course.id, course]));
 
   const getTypeIcon = (type) => {
@@ -86,13 +91,19 @@ const Resources = () => {
             className="px-4 py-2 border border-white/10 bg-[#0B1220] text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
           >
             <option value="">All Courses</option>
-            {courses.map((course) => (
+            {visibleCourses.map((course) => (
               <option key={course.id} value={course.id}>
                 {course.title}
               </option>
             ))}
           </select>
         </div>
+
+        {!isPrivileged && visibleCourses.length === 0 && (
+          <div className="bg-[#0B1220] rounded-lg p-6 border border-white/10 text-center text-gray-300">
+            You do not have access to any course resources yet. Complete a course payment to unlock materials.
+          </div>
+        )}
 
         {resources.length === 0 ? (
           <div className="bg-[#0B1220] rounded-lg p-12 border border-white/10 text-center">

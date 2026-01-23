@@ -175,6 +175,14 @@ export const AuthProvider = ({ children }) => {
           });
         }
         
+        // If payment verification is pending, route back to status page
+        const returnTo = sessionStorage.getItem('paystack_return_to');
+        if (returnTo) {
+          sessionStorage.removeItem('paystack_return_to');
+          navigate(returnTo, { replace: true });
+          return { success: true };
+        }
+
         // Navigate based on role (use finalRole from bootstrap/me response)
         const roleToUse = finalRole || profile?.role || 'student';
         const roleLower = roleToUse.toLowerCase();

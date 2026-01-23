@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import Footer from '../components/common/Footer';
 import CourseCard from '../components/dashboard/CourseCard';
 import Loader from '../components/common/Loader';
 import api from '../services/api';
 import { getIcon } from '../utils/icons';
+import { useAuth } from '../context/AuthContext';
+import { paymentService } from '../services/payment.service';
+import toast from 'react-hot-toast';
 
 const Courses = () => {
+  const { isAuthenticated, profile } = useAuth();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [processingCourseId, setProcessingCourseId] = useState(null);
 
   useEffect(() => {
     fetchCourses();
-  }, [filter]);
+  }, [filter, isAuthenticated]);
 
   const fetchCourses = async () => {
     try {
@@ -22,14 +26,52 @@ const Courses = () => {
       if (filter !== 'all') {
         params.level = filter;
       }
-      const { data } = await api.get('/courses', { params });
-      setCourses(data.data.courses);
+      const endpoint = isAuthenticated ? '/student/courses' : '/courses';
+      const { data } = await api.get(endpoint, { params });
+      const courseList = isAuthenticated ? data.data : data.data.courses;
+      setCourses(courseList || []);
     } catch (error) {
       console.error('Error fetching courses:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  const formatPrice = (course) => {
+    if (!course?.price_ngn) {
+      return null;
+    }
+    return new Intl.NumberFormat('en-KE', {
+      style: 'currency',
+      currency: 'KES',
+      maximumFractionDigits: 0,
+    }).format(Number(course.price_ngn));
+  };
+
+  const handlePay = async (courseId, courseLevel, courseTitle) => {
+    if (!isAuthenticated) {
+      toast.error('Please sign in to continue');
+      return;
+    }
+
+    setProcessingCourseId(courseId);
+    try {
+      const response = await paymentService.initializeCoursePayment(courseId, courseLevel, courseTitle);
+      if (response.success && response.data?.authorization_url) {
+        window.location.href = response.data.authorization_url;
+      } else {
+        toast.error('Failed to initialize payment. Please try again.');
+      }
+    } catch (error) {
+      console.error('Payment init error:', error);
+      toast.error(error.message || error.response?.data?.message || 'Payment initialization failed.');
+    } finally {
+      setProcessingCourseId(null);
+    }
+  };
+
+  const isPrivileged = ['admin', 'super_admin', 'owner', 'content_admin', 'support_admin', 'finance_admin']
+    .includes(profile?.role?.toLowerCase());
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#070A0F] via-[#0B1220] to-[#0F1A2E]">
@@ -50,52 +92,33 @@ const Courses = () => {
 
         {/* Course Overview Section */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {[
-            {
-              level: 'Beginner',
-              iconName: 'beginner',
-              description: 'Perfect for those new to Forex trading. Learn the fundamentals, understand market basics, and build a solid foundation.',
-              duration: '4-6 weeks',
-              lessons: '20+ lessons',
-              price: 'Free',
-              color: 'green'
-            },
-            {
-              level: 'Intermediate',
-              iconName: 'intermediate',
-              description: 'Take your trading to the next level. Master technical analysis, trading strategies, and risk management techniques.',
-              duration: '6-8 weeks',
-              lessons: '30+ lessons',
-              price: '$29.99/mo',
-              color: 'blue'
-            },
-            {
-              level: 'Advanced',
-              iconName: 'advanced',
-              description: 'For serious traders. Learn institutional strategies, advanced techniques, and professional trading methods.',
-              duration: '8-12 weeks',
-              lessons: '40+ lessons',
-              price: '$99.99/mo',
-              color: 'purple'
-            }
-          ].map((course, index) => {
-            const IconComponent = getIcon(course.iconName);
+          {['beginner', 'intermediate', 'advanced'].map((level) => {
+            const course = courses.find((item) => item.level === level);
+            const display = {
+              level: level.charAt(0).toUpperCase() + level.slice(1),
+              iconName: level,
+              description: course?.description || 'Course details will be available soon.',
+              duration: level === 'beginner' ? '4-6 weeks' : level === 'intermediate' ? '6-8 weeks' : '8-12 weeks',
+              lessons: level === 'beginner' ? '20+ lessons' : level === 'intermediate' ? '30+ lessons' : '40+ lessons',
+              price: course ? formatPrice(course) : 'Pricing coming soon',
+            };
+            const IconComponent = getIcon(display.iconName);
             return (
-              <div key={index} className="card hover:border-accent-500 hover:shadow-xl transition-all duration-300">
+              <div key={level} className="card hover:border-accent-500 hover:shadow-xl transition-all duration-300">
                 <div className="mb-4">
                   {IconComponent && (
                     <IconComponent className="w-12 h-12 text-accent-600" />
                   )}
                 </div>
-                <h3 className="text-2xl font-bold text-[#F5F7FF] mb-3">{course.level} Course</h3>
-                <p className="text-gray-600 mb-4 leading-relaxed">{course.description}</p>
+                <h3 className="text-2xl font-bold text-[#F5F7FF] mb-3">{display.level} Course</h3>
+                <p className="text-gray-600 mb-4 leading-relaxed">{display.description}</p>
                 <div className="space-y-2 mb-4">
                   {(() => {
                     const ClockIcon = getIcon('clock');
                     return (
                       <div className="flex items-center text-gray-700 text-sm">
                         {ClockIcon && <ClockIcon className="w-4 h-4 text-accent-600 mr-2" />}
-                        Duration: {course.duration}
+                        Duration: {display.duration}
                       </div>
                     );
                   })()}
@@ -104,12 +127,12 @@ const Courses = () => {
                     return (
                       <div className="flex items-center text-gray-700 text-sm">
                         {BookIcon && <BookIcon className="w-4 h-4 text-accent-600 mr-2" />}
-                        {course.lessons}
+                        {display.lessons}
                       </div>
                     );
                   })()}
                   <div className="flex items-center text-accent-600 font-bold">
-                    {course.price}
+                    {display.price}
                   </div>
                 </div>
               </div>
@@ -184,9 +207,21 @@ const Courses = () => {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.map((course) => (
-              <CourseCard key={course.id} course={course} />
-            ))}
+            {courses.map((course) => {
+              const locked = !isPrivileged && isAuthenticated && course.isEntitled === false;
+              const priceLabel = formatPrice(course);
+
+              return (
+                <CourseCard
+                  key={course.id}
+                  course={course}
+                  isLocked={locked}
+                  priceLabel={priceLabel}
+                  onPay={() => handlePay(course.id, course.level, course.title)}
+                  isProcessing={processingCourseId === course.id}
+                />
+              );
+            })}
           </div>
         )}
 

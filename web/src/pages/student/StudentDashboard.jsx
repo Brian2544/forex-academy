@@ -4,9 +4,12 @@ import { motion } from 'framer-motion';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import { paymentService } from '../../services/payment.service';
+import { Lock, Unlock } from 'lucide-react';
+import CourseCard from '../../components/dashboard/CourseCard';
 
 const StudentDashboard = () => {
-  const { user } = useAuth();
+  const { profile } = useAuth();
 
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['student-dashboard'],
@@ -26,20 +29,56 @@ const StudentDashboard = () => {
     },
   });
 
-  const { data: plansData } = useQuery({
-    queryKey: ['billing-plans'],
+  const { data: coursesData } = useQuery({
+    queryKey: ['student-courses'],
     queryFn: async () => {
       try {
-        const response = await api.get('/billing/plans');
+        const response = await api.get('/student/courses');
         return response.data.data || [];
       } catch (error) {
+        console.error('Error fetching courses:', error);
         return [];
       }
     },
   });
 
-  const access = dashboardData?.access || 'active'; // Default to active - all content unlocked
-  const isActive = true; // All content is now accessible (payment integration on hold)
+  const access = dashboardData?.access || 'inactive';
+  const isPrivileged = ['admin', 'super_admin', 'owner', 'content_admin', 'support_admin', 'finance_admin']
+    .includes(profile?.role?.toLowerCase());
+  const hasCourseAccess = isPrivileged || access === 'active';
+
+  const formatPrice = (course) => {
+    if (!course?.price_ngn) {
+      return 'Pricing unavailable';
+    }
+    return new Intl.NumberFormat('en-KE', {
+      style: 'currency',
+      currency: 'KES',
+      maximumFractionDigits: 0,
+    }).format(Number(course.price_ngn));
+  };
+
+  const handleCoursePayment = async (courseId, courseLevel, courseTitle, courseObject) => {
+    try {
+      if (import.meta.env.DEV) {
+        console.debug('[Paystack] Init payload:', {
+          courseId,
+          courseLevel,
+          courseTitle,
+          courseObject,
+        });
+      }
+      const response = await paymentService.initializeCoursePayment(courseId, courseLevel, courseTitle);
+      if (response.success && response.data?.authorization_url) {
+        window.location.href = response.data.authorization_url;
+      } else {
+        toast.error('Failed to initialize payment. Please try again.');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error(error.message || error.response?.data?.message || 'Payment initialization failed.');
+    }
+  };
 
   // Dashboard sections matching exact layout
   const sections = {
@@ -47,9 +86,9 @@ const StudentDashboard = () => {
       {
         title: 'Learning & Training',
         items: [
-          { text: 'Beginner course', link: '/student/courses/beginner' },
-          { text: 'Intermediate course', link: '/student/courses/intermediate' },
-          { text: 'Advanced course', link: '/student/courses/advanced' },
+          { text: 'Beginner course', link: '/student/courses/beginner', level: 'beginner' },
+          { text: 'Intermediate course', link: '/student/courses/intermediate', level: 'intermediate' },
+          { text: 'Advanced course', link: '/student/courses/advanced', level: 'advanced' },
         ],
       },
       {
@@ -139,19 +178,56 @@ const StudentDashboard = () => {
   };
 
   const SectionCard = ({ section, column }) => {
+    const isLearningSection = section.title === 'Learning & Training';
+    const sectionActive = isLearningSection ? hasCourseAccess : true;
+
     const CardContent = () => (
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-gray-900">{section.title}</h3>
-          <span className="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-800">
-            ACTIVE
+          <span className={`px-2 py-1 rounded text-xs font-semibold ${
+            sectionActive ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+          }`}>
+            {sectionActive ? 'ACTIVE' : 'LOCKED'}
           </span>
         </div>
         <ul className="space-y-2">
           {section.items.map((item, idx) => (
             <li key={idx} className="flex items-start">
               <span className="mr-2 text-gray-400">•</span>
-              {item.external ? (
+              {item.level && !isPrivileged && coursesData?.length > 0 ? (
+                (() => {
+                  const course = coursesData.find((courseItem) => courseItem.level === item.level);
+                  const isEntitled = course?.isEntitled;
+                  const isLocked = !isEntitled;
+                  const priceLabel = formatPrice(course);
+
+                  return (
+                    <div className="flex-1 flex items-center justify-between gap-3">
+                      <Link
+                        to={isLocked ? '#' : item.link}
+                        onClick={(event) => {
+                          if (isLocked && course?.id) {
+                            event.preventDefault();
+                            handleCoursePayment(course.id);
+                          }
+                        }}
+                        className={`text-sm flex-1 ${
+                          isLocked ? 'text-gray-400 cursor-pointer' : 'text-blue-600 hover:text-blue-700 hover:underline'
+                        }`}
+                      >
+                        {item.text}
+                      </Link>
+                      <span className={`inline-flex items-center gap-1 text-xs font-semibold ${
+                        isLocked ? 'text-red-600' : 'text-green-600'
+                      }`} title={priceLabel}>
+                        {isLocked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                        {isLocked ? 'Locked' : 'Unlocked'}
+                      </span>
+                    </div>
+                  );
+                })()
+              ) : item.external ? (
                 <a
                   href={item.link}
                   target="_blank"
@@ -201,13 +277,42 @@ const StudentDashboard = () => {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Trainees Page</h1>
           <div className="flex items-center gap-4">
-            <span className="px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
-              ACTIVE
+            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+              hasCourseAccess ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+            }`}>
+              {hasCourseAccess ? 'ACTIVE' : 'LOCKED'}
             </span>
             <span className="text-sm text-gray-600">
-              All content is accessible (Payment integration on hold)
+              {hasCourseAccess
+                ? 'Your course access is active.'
+                : 'Payment is required to unlock course materials.'}
             </span>
           </div>
+        </div>
+
+        {/* Course Access */}
+        <div className="mb-10">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Courses</h2>
+          {coursesData?.length ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {coursesData.map((course) => {
+                const locked = !isPrivileged && !course.isEntitled;
+                return (
+                  <CourseCard
+                    key={course.id}
+                    course={course}
+                    isLocked={locked}
+                    priceLabel={formatPrice(course)}
+                    onPay={() => handleCoursePayment(course.id, course.level, course.title, course)}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg border border-gray-200 p-6 text-gray-600">
+              No courses available yet.
+            </div>
+          )}
         </div>
 
         {/* 3-Column Layout */}

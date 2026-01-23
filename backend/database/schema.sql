@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS payment_events (
   UNIQUE(provider, event_id)
 );
 
+
 -- App settings table
 CREATE TABLE IF NOT EXISTS app_settings (
   id INTEGER PRIMARY KEY DEFAULT 1,
@@ -67,8 +68,55 @@ CREATE TABLE IF NOT EXISTS courses (
   description TEXT,
   level TEXT CHECK (level IN ('beginner', 'intermediate', 'advanced')),
   is_active BOOLEAN DEFAULT true,
+  price_ngn DECIMAL(10, 2),
+  currency TEXT DEFAULT 'NGN',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Payments table (transactions)
+CREATE TABLE IF NOT EXISTS payments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  plan_id UUID REFERENCES plans(id),
+  course_id UUID REFERENCES courses(id),
+  email TEXT,
+  reference TEXT UNIQUE NOT NULL,
+  amount DECIMAL(10, 2),
+  amount_kobo INTEGER,
+  currency TEXT DEFAULT 'NGN',
+  status TEXT NOT NULL,
+  provider TEXT DEFAULT 'paystack',
+  paid_at TIMESTAMPTZ,
+  raw_event JSONB,
+  metadata JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Entitlements table (course access)
+CREATE TABLE IF NOT EXISTS entitlements (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  active BOOLEAN DEFAULT true,
+  activated_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ,
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'expired')),
+  source_payment_reference TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, course_id)
+);
+
+-- Payment intents (reference -> user/course mapping)
+CREATE TABLE IF NOT EXISTS payment_intents (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  reference TEXT UNIQUE NOT NULL,
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  amount_kobo INTEGER NOT NULL,
+  currency TEXT NOT NULL DEFAULT 'KES',
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Lessons table
@@ -187,6 +235,17 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
+CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
+CREATE INDEX IF NOT EXISTS idx_payments_reference ON payments(reference);
+CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
+CREATE INDEX IF NOT EXISTS idx_payments_course_id ON payments(course_id);
+CREATE INDEX IF NOT EXISTS idx_entitlements_user_id ON entitlements(user_id);
+CREATE INDEX IF NOT EXISTS idx_entitlements_course_id ON entitlements(course_id);
+CREATE INDEX IF NOT EXISTS idx_entitlements_active ON entitlements(active);
+CREATE INDEX IF NOT EXISTS idx_entitlements_expires_at ON entitlements(expires_at);
+CREATE INDEX IF NOT EXISTS idx_payment_intents_reference ON payment_intents(reference);
+CREATE INDEX IF NOT EXISTS idx_payment_intents_user_id ON payment_intents(user_id);
+CREATE INDEX IF NOT EXISTS idx_payment_intents_course_id ON payment_intents(course_id);
 CREATE INDEX IF NOT EXISTS idx_payment_events_provider_event ON payment_events(provider, event_id);
 CREATE INDEX IF NOT EXISTS idx_lessons_course_id ON lessons(course_id);
 CREATE INDEX IF NOT EXISTS idx_resources_course_id ON resources(course_id);
@@ -230,6 +289,27 @@ ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- Users can read their own subscription
 CREATE POLICY "Users can read own subscription" ON subscriptions
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Enable RLS on payments
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+
+-- Users can read their own payments
+CREATE POLICY "Users can read own payments" ON payments
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Enable RLS on entitlements
+ALTER TABLE entitlements ENABLE ROW LEVEL SECURITY;
+
+-- Users can read their own entitlements
+CREATE POLICY "Users can read own entitlements" ON entitlements
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Enable RLS on payment intents
+ALTER TABLE payment_intents ENABLE ROW LEVEL SECURITY;
+
+-- Users can read their own payment intents
+CREATE POLICY "Users can read own payment intents" ON payment_intents
   FOR SELECT USING (auth.uid() = user_id);
 
 -- Enable RLS on chat messages

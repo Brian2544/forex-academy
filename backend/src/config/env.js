@@ -8,8 +8,8 @@ const __dirname = dirname(__filename);
 
 // Load .env from backend directory (one level up from src/config)
 dotenv.config({ path: join(__dirname, '..', '..', '.env') });
-// Optionally load local.env for machine-specific secrets
-dotenv.config({ path: join(__dirname, '..', 'config', 'local.env') });
+// Optionally load local.env for machine-specific secrets (override placeholders)
+dotenv.config({ path: join(__dirname, '..', 'config', 'local.env'), override: true });
 
 // Ensure OWNER_EMAILS is available (don't crash if absent)
 const ownerEmails = process.env.OWNER_EMAILS || '';
@@ -22,8 +22,12 @@ export const config = {
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   },
   paystack: {
-    secretKey: process.env.PAYSTACK_SECRET_KEY,
-    webhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET || process.env.PAYSTACK_SECRET_KEY, // Fallback to secret key if webhook secret not set
+    secretKey: (process.env.PAYSTACK_SECRET_KEY || '').trim(),
+    webhookSecret: (process.env.PAYSTACK_WEBHOOK_SECRET || process.env.PAYSTACK_SECRET_KEY || '').trim(), // Fallback to secret key if webhook secret not set
+    mockMode: process.env.PAYSTACK_MOCK_MODE === 'true',
+    publicKey: (process.env.PAYSTACK_PUBLIC_KEY || '').trim(),
+    currency: (process.env.PAYSTACK_CURRENCY || 'KES').trim().toUpperCase(),
+    accessDays: Number(process.env.PAYSTACK_ACCESS_DAYS || 365),
   },
   appBaseUrl: process.env.APP_BASE_URL || 'http://localhost:3000',
 };

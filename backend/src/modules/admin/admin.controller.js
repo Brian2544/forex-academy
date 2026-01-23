@@ -612,6 +612,18 @@ export const getStudents = asyncHandler(async (req, res) => {
     .select('user_id, status, trial_ends_at, current_period_end')
     .in('user_id', studentIds);
 
+  // Get course entitlements
+  const { data: entitlements } = await supabaseAdmin
+    .from('entitlements')
+    .select('user_id, course_id, status, activated_at, expires_at, source_payment_reference')
+    .in('user_id', studentIds);
+
+  const { data: courses } = await supabaseAdmin
+    .from('courses')
+    .select('id, title');
+
+  const courseMap = new Map((courses || []).map((course) => [course.id, course.title]));
+
   // Get payment totals (if payments table exists)
   let payments = [];
   try {
@@ -642,6 +654,9 @@ export const getStudents = asyncHandler(async (req, res) => {
   let studentsWithData = students.map(student => {
     const authUser = authUsers.find(au => au.id === student.id);
     const subscription = subscriptions?.find(s => s.user_id === student.id);
+    const studentEntitlements = (entitlements || []).filter((ent) => ent.user_id === student.id);
+    const latestEntitlement = studentEntitlements
+      .sort((a, b) => new Date(b.activated_at || 0) - new Date(a.activated_at || 0))[0];
     const totalPaid = totalPaidMap[student.id] || 0;
 
     let subscriptionStatus = subscription?.status || 'inactive';
@@ -669,6 +684,14 @@ export const getStudents = asyncHandler(async (req, res) => {
       email,
       subscription_status: subscriptionStatus,
       total_paid: totalPaid,
+      course_subscription: latestEntitlement ? {
+        course_id: latestEntitlement.course_id,
+        course_title: courseMap.get(latestEntitlement.course_id) || 'N/A',
+        status: latestEntitlement.status || 'active',
+        activated_at: latestEntitlement.activated_at,
+        expires_at: latestEntitlement.expires_at,
+        reference: latestEntitlement.source_payment_reference || null,
+      } : null,
     };
   }).filter(Boolean); // Remove nulls from filtering
 

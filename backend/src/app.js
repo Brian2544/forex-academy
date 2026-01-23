@@ -14,6 +14,7 @@ import studentRoutes from './modules/student/student.routes.js';
 import adminRoutes from './modules/admin/admin.routes.js';
 import ownerRoutes from './modules/owner/owner.routes.js';
 import paymentRoutes from './modules/payments/payments.routes.js';
+import { initializeCoursePayment, verifyCoursePayment, getMyEntitlements, getPaystackPublicKey } from './modules/payments/payments.controller.js';
 import chatRoutes from './modules/chat/chat.routes.js';
 import { requireAuth } from './middleware/requireAuth.js';
 import { supabaseAdmin } from './config/supabaseAdmin.js';
@@ -29,7 +30,7 @@ app.use(cors({
 
 // Special handling for Paystack webhook - must be before express.json()
 // Paystack webhook needs raw body for signature verification
-app.use('/payments/webhook', express.raw({ type: 'application/json' }));
+app.use(['/payments/webhook', '/payments/paystack/webhook', '/billing/paystack/webhook'], express.raw({ type: 'application/json' }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -191,9 +192,20 @@ app.use('/users', userRoutes);
 app.use('/student', studentRoutes);
 app.use('/admin', adminRoutes);
 app.use('/owner', ownerRoutes);
+// Paystack course payment aliases (ensure direct route availability)
+app.post('/payments/paystack/initialize', requireAuth, initializeCoursePayment);
+app.get('/payments/paystack/verify/:reference', requireAuth, verifyCoursePayment);
+app.get('/payments/paystack/entitlements', requireAuth, getMyEntitlements);
+app.get('/payments/paystack/public-key', getPaystackPublicKey);
 app.use('/billing', paymentRoutes);
 app.use('/payments', paymentRoutes);
 app.use('/chat', chatRoutes);
+
+// Redirect Paystack callback to frontend SPA route if backend receives it
+app.get('/payments/status', (req, res) => {
+  const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+  res.redirect(`${config.frontendUrl}/payments/status${query}`);
+});
 
 // 404 handler
 app.use((req, res) => {

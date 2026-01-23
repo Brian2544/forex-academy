@@ -115,6 +115,7 @@ const Courses = () => {
                 <tr>
                   <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Title</th>
                   <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Level</th>
+                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Price (NGN)</th>
                   <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Status</th>
                   <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Created</th>
                   <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Actions</th>
@@ -123,7 +124,7 @@ const Courses = () => {
               <tbody>
                 {courses.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-12 text-gray-500">
+                    <td colSpan={6} className="text-center py-12 text-gray-500">
                       No courses found
                     </td>
                   </tr>
@@ -142,6 +143,11 @@ const Courses = () => {
                         <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 capitalize">
                           {course.level || 'general'}
                         </span>
+                      </td>
+                      <td className="py-4 px-6 text-sm text-gray-700">
+                        {course.price_ngn
+                          ? new Intl.NumberFormat('en-NG', { style: 'currency', currency: course.currency || 'NGN', maximumFractionDigits: 0 }).format(Number(course.price_ngn))
+                          : '—'}
                       </td>
                       <td className="py-4 px-6">
                         <button
@@ -203,6 +209,7 @@ const CreateCourseModal = ({ onClose }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [level, setLevel] = useState('beginner');
+  const [priceNgn, setPriceNgn] = useState('');
   const [isActive, setIsActive] = useState(true);
   const queryClient = useQueryClient();
 
@@ -223,7 +230,15 @@ const CreateCourseModal = ({ onClose }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    createMutation.mutate({ title, description, level, is_active: isActive });
+    const parsedPrice = priceNgn ? Number(priceNgn) : null;
+    createMutation.mutate({
+      title,
+      description,
+      level,
+      is_active: isActive,
+      price_ngn: Number.isFinite(parsedPrice) ? parsedPrice : null,
+      currency: 'NGN',
+    });
   };
 
   return (
@@ -259,6 +274,17 @@ const CreateCourseModal = ({ onClose }) => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={6}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Price (NGN)</label>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={priceNgn}
+              onChange={(e) => setPriceNgn(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
           </div>

@@ -133,7 +133,11 @@ const Pricing = () => {
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                   <div className="mb-4">
                     <span className="text-4xl font-bold text-accent-600">
-                      ${plan.price}
+                      {new Intl.NumberFormat('en-KE', {
+                        style: 'currency',
+                        currency: 'KES',
+                        maximumFractionDigits: 0,
+                      }).format(Number(plan.price || 0))}
                     </span>
                     {planKey !== 'free' && planKey !== 'lifetime' && (
                       <span className="text-gray-600">/month</span>

@@ -1,6 +1,41 @@
 import api from './api';
+import { appEnv } from '../config/appEnv';
+
+let cachedPublicKey = appEnv.paystackPublicKey || '';
 
 export const paymentService = {
+  initializeCoursePayment: async (courseId, courseLevel, courseTitle) => {
+    if (!cachedPublicKey) {
+      try {
+        const keyResponse = await api.get('/payments/paystack/public-key');
+        cachedPublicKey = keyResponse.data?.data?.publicKey || '';
+      } catch (error) {
+        cachedPublicKey = '';
+      }
+    }
+
+    if (!cachedPublicKey && import.meta.env.DEV) {
+      console.warn('[Paystack] Public key missing; proceeding with backend init.');
+    }
+
+    const response = await api.post('/payments/paystack/initialize', {
+      courseId,
+      courseLevel,
+      courseTitle,
+    });
+    return response.data;
+  },
+
+  verifyCoursePayment: async (reference) => {
+    const response = await api.get(`/payments/paystack/verify/${reference}`);
+    return response.data;
+  },
+
+  getCourseEntitlements: async () => {
+    const response = await api.get('/payments/paystack/entitlements');
+    return response.data;
+  },
+
   getPlans: async () => {
     const response = await api.get('/billing/plans');
     return response.data;

@@ -2,6 +2,48 @@ import { paystack } from '../../config/paystack.js';
 import { supabaseAdmin } from '../../config/supabaseAdmin.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { logger } from '../../utils/logger.js';
+import { config } from '../../config/env.js';
+
+const resolveAccessDays = (course) => {
+  const explicitDays = Number(course?.duration_days || course?.access_days);
+  if (Number.isFinite(explicitDays) && explicitDays > 0) {
+    return explicitDays;
+  }
+  const level = (course?.level || '').toLowerCase();
+  if (level === 'beginner') return 30;
+  if (level === 'intermediate') return 60;
+  if (level === 'advanced') return 90;
+  return Number(config.paystack.accessDays || 365);
+};
+
+const getRawBodyBuffer = (req) => {
+  if (Buffer.isBuffer(req.body)) {
+    return req.body;
+  }
+  return Buffer.from(JSON.stringify(req.body || {}));
+};
+
+const verifyPaystackSignature = async (req) => {
+  const signature = req.headers['x-paystack-signature'];
+  if (!signature) {
+    return { valid: false, reason: 'Missing signature' };
+  }
+
+  const crypto = await import('crypto');
+  const { config } = await import('../../config/env.js');
+  const rawBodyBuffer = getRawBodyBuffer(req);
+
+  if (!rawBodyBuffer || rawBodyBuffer.length === 0) {
+    return { valid: false, reason: 'Missing raw body' };
+  }
+
+  const hash = crypto.default
+    .createHmac('sha512', config.paystack.webhookSecret)
+    .update(rawBodyBuffer)
+    .digest('hex');
+
+  return { valid: hash === signature, rawBodyBuffer };
+};
 
 export const handleWebhook = asyncHandler(async (req, res) => {
   // Check if Paystack is configured
@@ -14,50 +56,17 @@ export const handleWebhook = asyncHandler(async (req, res) => {
     });
   }
 
-  const signature = req.headers['x-paystack-signature'];
-
-  if (!signature) {
-    return res.status(400).json({
-      success: false,
-      message: 'Missing signature',
-    });
-  }
-
-  // Verify signature - Paystack expects the raw request body buffer
-  const crypto = await import('crypto');
-  const { config } = await import('../../config/env.js');
-  
-  // Get raw body - it should be a Buffer from express.raw()
-  // Store original buffer before parsing
-  const rawBodyBuffer = Buffer.isBuffer(req.body) 
-    ? req.body 
-    : Buffer.from(JSON.stringify(req.body));
-  
-  if (!rawBodyBuffer || rawBodyBuffer.length === 0) {
-    logger.warn('No raw body available for signature verification');
-    return res.status(400).json({
-      success: false,
-      message: 'Invalid request',
-    });
-  }
-
-  // Verify signature using raw buffer
-  const hash = crypto.default
-    .createHmac('sha512', config.paystack.webhookSecret)
-    .update(rawBodyBuffer)
-    .digest('hex');
-  const isValid = hash === signature;
-
-  if (!isValid) {
+  const signatureResult = await verifyPaystackSignature(req);
+  if (!signatureResult.valid) {
     logger.warn('Invalid webhook signature');
     return res.status(400).json({
       success: false,
-      message: 'Invalid signature',
+      message: signatureResult.reason || 'Invalid signature',
     });
   }
 
   // Parse the event from the buffer
-  const event = JSON.parse(rawBodyBuffer.toString());
+  const event = JSON.parse(signatureResult.rawBodyBuffer.toString());
 
   // Store event for idempotency
   const { data: existingEvent } = await supabaseAdmin
@@ -276,6 +285,166 @@ export const handleWebhook = asyncHandler(async (req, res) => {
         .eq('user_id', metadata.userId)
         .eq('provider_ref', reference);
     }
+  }
+
+  res.json({ success: true });
+});
+
+export const handleCoursePaymentWebhook = asyncHandler(async (req, res) => {
+  if (!paystack.isConfigured()) {
+    logger.warn('Course webhook received but Paystack is not configured');
+    return res.status(503).json({
+      success: false,
+      message: 'Payment system is not configured',
+    });
+  }
+
+  const signatureResult = await verifyPaystackSignature(req);
+  if (!signatureResult.valid) {
+    logger.warn('Invalid course webhook signature');
+    return res.status(400).json({
+      success: false,
+      message: signatureResult.reason || 'Invalid signature',
+    });
+  }
+
+  const event = JSON.parse(signatureResult.rawBodyBuffer.toString());
+  const eventId = event.data?.reference || event.event;
+
+  if (!eventId) {
+    return res.json({ success: true });
+  }
+
+  const { data: existingEvent } = await supabaseAdmin
+    .from('payment_events')
+    .select('id')
+    .eq('event_id', eventId)
+    .maybeSingle();
+
+  if (existingEvent) {
+    return res.json({ success: true, message: 'Event already processed' });
+  }
+
+  await supabaseAdmin.from('payment_events').insert({
+    provider: 'paystack',
+    event_id: eventId,
+    payload_json: JSON.stringify(event),
+  });
+
+  if (event.event !== 'charge.success' && event.event !== 'transaction.charge.success') {
+    return res.json({ success: true });
+  }
+
+  const reference = event.data?.reference;
+  if (!reference) {
+    return res.json({ success: true });
+  }
+
+  try {
+    const verifyResponse = await paystack.verifyTransaction(reference);
+    if (!verifyResponse.status || verifyResponse.data?.status !== 'success') {
+      return res.json({ success: true });
+    }
+
+    const transaction = verifyResponse.data;
+    const metadata = transaction.metadata || {};
+    const userId = metadata.user_id || metadata.userId;
+    const courseId = metadata.course_id || metadata.courseId;
+    const email = metadata.email || transaction.customer?.email;
+
+    if (!userId || !courseId) {
+      logger.warn('Course metadata missing in webhook transaction');
+      return res.json({ success: true });
+    }
+
+    const { data: course } = await supabaseAdmin
+      .from('courses')
+      .select('id, price_ngn, currency, level')
+      .eq('id', courseId)
+      .eq('is_active', true)
+      .single();
+
+    if (!course) {
+      logger.warn('Course not found for webhook transaction');
+      return res.json({ success: true });
+    }
+
+    const expectedKobo = Math.round(Number(course.price_ngn || 0) * 100);
+    if (transaction.amount !== expectedKobo) {
+      logger.warn('Webhook amount mismatch', { reference });
+      return res.json({ success: true });
+    }
+
+    const currency = (config.paystack.currency || 'KES').toUpperCase();
+    if ((transaction.currency || '').toUpperCase() !== currency) {
+      logger.warn('Webhook currency mismatch', { reference });
+      return res.json({ success: true });
+    }
+
+    const activatedAt = new Date();
+    const expiresAt = new Date(activatedAt);
+    const accessDays = resolveAccessDays(course);
+    expiresAt.setDate(expiresAt.getDate() + accessDays);
+
+    const { error: eventError } = await supabaseAdmin
+      .from('payment_events')
+      .upsert(
+        {
+          provider: 'paystack',
+          event_id: reference,
+          payload_json: transaction,
+        },
+        { onConflict: 'provider,event_id' }
+      );
+
+    if (eventError) {
+      logger.warn('Course webhook payment event upsert failed:', eventError.message);
+    }
+
+    const { error: paymentError } = await supabaseAdmin
+      .from('payments')
+      .upsert(
+        {
+          user_id: userId,
+          email,
+          course_id: course.id,
+          reference,
+          amount: Number(course.price_ngn || 0),
+          amount_kobo: transaction.amount,
+          currency: transaction.currency || course.currency || 'NGN',
+          status: transaction.status,
+          paid_at: transaction.paid_at || new Date().toISOString(),
+          raw_event: transaction,
+          provider: 'paystack',
+          metadata: transaction,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'reference' }
+      );
+
+    const { error: entitlementError } = await supabaseAdmin
+      .from('entitlements')
+      .upsert(
+        {
+          user_id: userId,
+          course_id: course.id,
+          active: true,
+          status: 'active',
+          activated_at: activatedAt.toISOString(),
+          expires_at: expiresAt.toISOString(),
+          source_payment_reference: reference,
+        },
+        { onConflict: 'user_id,course_id' }
+      );
+
+    if (paymentError || entitlementError) {
+      logger.error('Webhook entitlement activation failed:', {
+        paymentError,
+        entitlementError,
+      });
+    }
+  } catch (error) {
+    logger.error('Course webhook verification error:', error.response?.data || error.message);
   }
 
   res.json({ success: true });

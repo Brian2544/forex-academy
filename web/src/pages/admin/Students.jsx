@@ -146,6 +146,11 @@ const Students = () => {
                     <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Email</th>
                     <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Country</th>
                     <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Subscription</th>
+                    <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Course</th>
+                    <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Course Status</th>
+                    <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Activated</th>
+                    <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Expires</th>
+                    <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Reference</th>
                     <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Total Paid</th>
                     <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Joined</th>
                     <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Actions</th>
@@ -154,7 +159,7 @@ const Students = () => {
                 <tbody>
                   {students.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="text-center py-12 text-gray-500">
+                      <td colSpan={12} className="text-center py-12 text-gray-500">
                         No students found
                       </td>
                     </tr>
@@ -180,6 +185,25 @@ const Students = () => {
                           >
                             {student.subscription_status}
                           </span>
+                        </td>
+                        <td className="py-4 px-6 text-sm text-gray-700">
+                          {student.course_subscription?.course_title || '—'}
+                        </td>
+                        <td className="py-4 px-6 text-sm text-gray-700">
+                          {student.course_subscription?.status || '—'}
+                        </td>
+                        <td className="py-4 px-6 text-sm text-gray-600">
+                          {student.course_subscription?.activated_at
+                            ? format(new Date(student.course_subscription.activated_at), 'MMM d, yyyy')
+                            : '—'}
+                        </td>
+                        <td className="py-4 px-6 text-sm text-gray-600">
+                          {student.course_subscription?.expires_at
+                            ? format(new Date(student.course_subscription.expires_at), 'MMM d, yyyy')
+                            : '—'}
+                        </td>
+                        <td className="py-4 px-6 text-sm text-gray-600 font-mono">
+                          {student.course_subscription?.reference || '—'}
                         </td>
                         <td className="py-4 px-6 text-sm text-gray-900">
                           ${parseFloat(student.total_paid || 0).toFixed(2)}
