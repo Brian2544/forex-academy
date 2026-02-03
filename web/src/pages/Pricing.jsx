@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Footer from '../components/common/Footer';
 import Loader from '../components/common/Loader';
 import { paymentService } from '../services/payment.service';
 import { useAuth } from '../context/AuthContext';
@@ -217,7 +216,6 @@ const Pricing = () => {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 };

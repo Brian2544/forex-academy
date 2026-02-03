@@ -1,4 +1,3 @@
-import Footer from '../../components/common/Footer';
 
 const Privacy = () => {
   return (
@@ -94,7 +93,6 @@ const Privacy = () => {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 };

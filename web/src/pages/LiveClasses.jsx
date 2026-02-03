@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import Footer from '../components/common/Footer';
 import Loader from '../components/common/Loader';
 import api from '../services/api';
 import { format } from 'date-fns';
@@ -202,7 +201,6 @@ const LiveClasses = () => {
         )}
       </div>
 
-      <Footer />
     </div>
   );
 };

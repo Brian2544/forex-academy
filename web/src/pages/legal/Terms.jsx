@@ -1,4 +1,3 @@
-import Footer from '../../components/common/Footer';
 
 const Terms = () => {
   return (
@@ -84,7 +83,6 @@ const Terms = () => {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 };

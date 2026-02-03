@@ -1,4 +1,3 @@
-import Footer from '../../components/common/Footer';
 import { getIcon } from '../../utils/icons';
 
 const Disclaimer = () => {
@@ -123,7 +122,6 @@ const Disclaimer = () => {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 };

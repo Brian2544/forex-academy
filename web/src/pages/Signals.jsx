@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import Footer from '../components/common/Footer';
 import SignalCard from '../components/dashboard/SignalCard';
 import Loader from '../components/common/Loader';
 import api from '../services/api';
@@ -111,7 +110,6 @@ const Signals = () => {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 };

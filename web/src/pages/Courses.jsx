@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import Footer from '../components/common/Footer';
 import CourseCard from '../components/dashboard/CourseCard';
 import Loader from '../components/common/Loader';
 import api from '../services/api';
@@ -232,7 +231,6 @@ const Courses = () => {
         )}
       </div>
 
-      <Footer />
     </div>
   );
 };
