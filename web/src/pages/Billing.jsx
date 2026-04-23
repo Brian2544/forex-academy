@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { CheckCircle2, Lock } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
+import { paymentService } from '../services/payment.service';
 
 const Billing = () => {
   const { user, isAuthenticated } = useAuth();
@@ -76,9 +77,9 @@ const Billing = () => {
     }
 
     try {
-      const response = await api.post('/billing/checkout', { planId });
-      if (response.data.success && response.data.data.authorization_url) {
-        window.location.href = response.data.data.authorization_url;
+      const response = await paymentService.initiatePayment(planId);
+      if (response.success && response.data?.authorization_url) {
+        window.location.href = response.data.authorization_url;
       } else {
         toast.error('Failed to initialize payment');
       }
@@ -203,6 +204,15 @@ const Billing = () => {
             Trading forex involves substantial risk of loss. We do not guarantee profits. 
             Past performance is not indicative of future results. Only trade with money you can afford to lose.
           </p>
+          <p className="text-xs text-[#B6C2E2] mt-3">
+            Educational content only and not financial advice.
+          </p>
+          <div className="flex flex-wrap gap-3 mt-4 text-sm">
+            <Link to="/legal/terms" className="text-primary-600 hover:text-primary-700">Terms</Link>
+            <Link to="/legal/privacy" className="text-primary-600 hover:text-primary-700">Privacy</Link>
+            <Link to="/legal/disclaimer" className="text-primary-600 hover:text-primary-700">Risk Disclaimer</Link>
+            <Link to="/legal/educational-purpose" className="text-primary-600 hover:text-primary-700">Educational Purpose</Link>
+          </div>
         </div>
       </div>
     </div>

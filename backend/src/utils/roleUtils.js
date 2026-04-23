@@ -134,7 +134,12 @@ export const canAssignRole = (actorRole, targetOldRole, newRole) => {
  */
 export const getOwnerEmails = () => {
   const ownerEmailsEnv = process.env.OWNER_EMAILS || '';
-  return ownerEmailsEnv
+  const singleOwnerEmail = process.env.OWNER_EMAIL || '';
+  const merged = [ownerEmailsEnv, singleOwnerEmail]
+    .filter(Boolean)
+    .join(',');
+
+  return merged
     .split(',')
     .map(email => email.trim().toLowerCase())
     .filter(email => email.length > 0);

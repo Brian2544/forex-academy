@@ -7,6 +7,7 @@ import { getIcon } from '../utils/icons';
 const LiveClasses = () => {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchClasses();
@@ -14,10 +15,13 @@ const LiveClasses = () => {
 
   const fetchClasses = async () => {
     try {
+      setError('');
       const { data } = await api.get('/live-classes');
       setClasses(data.data.liveClasses);
     } catch (error) {
       console.error('Error fetching live classes:', error);
+      setError('Live class data is temporarily unavailable. Please check again shortly.');
+      setClasses([]);
     } finally {
       setLoading(false);
     }
@@ -168,6 +172,12 @@ const LiveClasses = () => {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {!!error && (
+          <div className="card border-yellow-500/50 bg-yellow-500/10 mt-8">
+            <p className="text-yellow-400 text-sm">{error}</p>
           </div>
         )}
 

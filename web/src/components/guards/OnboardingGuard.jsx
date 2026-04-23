@@ -8,6 +8,7 @@ import Loader from '../common/Loader';
  */
 const OnboardingGuard = ({ children }) => {
   const { isAuthenticated, loading, isOnboarded, role } = useAuth();
+  const roleLower = (role || '').toLowerCase();
 
   if (loading) {
     return (
@@ -23,9 +24,12 @@ const OnboardingGuard = ({ children }) => {
 
   // If profile is already complete, redirect to dashboard
   if (isOnboarded) {
-    if (['admin', 'owner'].includes(role)) {
+    if (roleLower === 'owner') {
+      return <Navigate to="/owner/dashboard" replace />;
+    }
+    if (['admin', 'super_admin', 'content_admin', 'support_admin', 'finance_admin'].includes(roleLower)) {
       return <Navigate to="/admin/overview" replace />;
-    } else if (role === 'instructor') {
+    } else if (roleLower === 'instructor') {
       return <Navigate to="/instructor/overview" replace />;
     } else {
       return <Navigate to="/student/dashboard" replace />;

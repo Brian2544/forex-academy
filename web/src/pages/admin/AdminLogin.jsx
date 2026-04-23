@@ -17,7 +17,7 @@ const AdminLogin = () => {
     if (isAuthenticated && user) {
       const isAdmin = ['ADMIN', 'SUPER_ADMIN', 'OWNER', 'INSTRUCTOR'].includes(user.role);
       if (isAdmin) {
-        const from = location.state?.from?.pathname || '/admin/dashboard';
+        const from = location.state?.from?.pathname || '/admin/overview';
         navigate(from, { replace: true });
       } else {
         // If user is not admin, redirect to student dashboard
@@ -50,8 +50,8 @@ const AdminLogin = () => {
         
         toast.success('Login successful!');
         
-        // Redirect to intended page or admin dashboard
-        const from = location.state?.from?.pathname || '/admin/dashboard';
+        // Redirect to intended page or admin overview
+        const from = location.state?.from?.pathname || '/admin/overview';
         navigate(from, { replace: true });
       }
     } catch (error) {
@@ -141,7 +141,7 @@ const AdminLogin = () => {
           <div className="mt-6 text-center">
             <p className="text-sm text-neutral-600">
               Need help?{' '}
-              <Link to="/contact" className="text-primary-600 hover:text-primary-700 font-medium">
+              <Link to="/student/contact" className="text-primary-600 hover:text-primary-700 font-medium">
                 Contact Support
               </Link>
             </p>

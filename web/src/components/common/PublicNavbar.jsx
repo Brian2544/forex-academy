@@ -10,11 +10,11 @@ const PublicNavbar = () => {
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="flex items-center space-x-3 group">
             <div className="w-12 h-12 gradient-brand rounded-xl flex items-center justify-center shadow-md shadow-primary-500/30 group-hover:scale-110 group-hover:shadow-glow-primary transition-all duration-300">
-              <span className="text-white font-black text-xl">FX</span>
+              <span className="text-white font-black text-xl">SFX</span>
             </div>
             <div>
-              <span className="text-xl font-black text-slate-100">Forex Academy</span>
-              <div className="text-xs text-amber-400 font-medium">Learn, Practice & Trade.</div>
+              <span className="text-xl font-black text-slate-100">Sniper FX Academy</span>
+              <div className="text-xs text-amber-400 font-medium">Smart Traders Are Trained.</div>
             </div>
           </Link>
 
@@ -33,6 +33,14 @@ const PublicNavbar = () => {
             </Link>
             <Link to="/pricing" className="text-slate-300 hover:text-amber-400 transition font-medium relative group">
               Pricing
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-amber-400 group-hover:w-full transition-all duration-300"></span>
+            </Link>
+            <Link to="/library" className="text-slate-300 hover:text-amber-400 transition font-medium relative group">
+              Library
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-amber-400 group-hover:w-full transition-all duration-300"></span>
+            </Link>
+            <Link to="/about" className="text-slate-300 hover:text-amber-400 transition font-medium relative group">
+              About
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-amber-400 group-hover:w-full transition-all duration-300"></span>
             </Link>
           </div>
@@ -77,6 +85,12 @@ const PublicNavbar = () => {
               </Link>
               <Link to="/pricing" className="text-slate-300 hover:text-amber-400 transition font-medium">
                 Pricing
+              </Link>
+              <Link to="/library" className="text-slate-300 hover:text-amber-400 transition font-medium">
+                Library
+              </Link>
+              <Link to="/about" className="text-slate-300 hover:text-amber-400 transition font-medium">
+                About
               </Link>
               <Link to="/login" className="text-slate-300 hover:text-amber-400 transition font-medium">
                 Login

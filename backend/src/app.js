@@ -19,6 +19,7 @@ import chatRoutes from './modules/chat/chat.routes.js';
 import { requireAuth } from './middleware/requireAuth.js';
 import { supabaseAdmin } from './config/supabaseAdmin.js';
 import { getCourses } from './modules/student/student.controller.js';
+import { applyCanonicalCoursePrice } from './utils/coursePricing.js';
 
 const app = express();
 
@@ -65,7 +66,7 @@ app.get('/courses', async (req, res) => {
     res.json({
       success: true,
       data: {
-        courses: data || [],
+        courses: (data || []).map((course) => applyCanonicalCoursePrice(course)),
       },
     });
   } catch (error) {

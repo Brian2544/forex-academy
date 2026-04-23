@@ -34,7 +34,7 @@ const VerifyEmail = () => {
           localStorage.setItem('user', JSON.stringify(data.user));
           updateUser(data.user); // Update AuthContext immediately
           setTimeout(() => {
-            navigate('/dashboard');
+            navigate('/student/dashboard');
           }, 1500);
         } else {
           // Fallback to login if no auto-login

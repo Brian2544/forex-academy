@@ -3,6 +3,7 @@ import { supabaseAdmin } from '../../config/supabaseAdmin.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { logger } from '../../utils/logger.js';
 import { config } from '../../config/env.js';
+import { applyCanonicalCoursePrice } from '../../utils/coursePricing.js';
 
 const resolveAccessDays = (course) => {
   const explicitDays = Number(course?.duration_days || course?.access_days);
@@ -72,6 +73,7 @@ export const handleWebhook = asyncHandler(async (req, res) => {
   const { data: existingEvent } = await supabaseAdmin
     .from('payment_events')
     .select('id')
+    .eq('provider', 'paystack')
     .eq('event_id', event.event || event.data?.reference)
     .maybeSingle();
 
@@ -318,6 +320,7 @@ export const handleCoursePaymentWebhook = asyncHandler(async (req, res) => {
   const { data: existingEvent } = await supabaseAdmin
     .from('payment_events')
     .select('id')
+    .eq('provider', 'paystack')
     .eq('event_id', eventId)
     .maybeSingle();
 
@@ -357,12 +360,14 @@ export const handleCoursePaymentWebhook = asyncHandler(async (req, res) => {
       return res.json({ success: true });
     }
 
-    const { data: course } = await supabaseAdmin
+    const { data: rawCourse } = await supabaseAdmin
       .from('courses')
       .select('id, price_ngn, currency, level')
       .eq('id', courseId)
       .eq('is_active', true)
       .single();
+
+    const course = applyCanonicalCoursePrice(rawCourse);
 
     if (!course) {
       logger.warn('Course not found for webhook transaction');

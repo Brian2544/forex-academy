@@ -18,15 +18,10 @@ export const getMe = asyncHandler(async (req, res) => {
   let profile = await ensureProfileExists(userId, user.email);
 
   if (!profile) {
-    // If bootstrap failed, return minimal response
     logger.error(`Failed to bootstrap profile for user ${userId}`);
-    return res.json({
-      success: true,
-      data: {
-        profile: null,
-        role: 'student',
-        profileCompleted: false,
-      },
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to resolve user profile',
     });
   }
 
@@ -39,13 +34,9 @@ export const getMe = asyncHandler(async (req, res) => {
 
   if (error || !fullProfile) {
     logger.error('Error fetching full profile:', error);
-    return res.json({
-      success: true,
-      data: {
-        profile: profile,
-        role: profile.role || 'student',
-        profileCompleted: !!(profile.first_name && profile.last_name),
-      },
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch user profile',
     });
   }
 

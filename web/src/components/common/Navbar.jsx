@@ -52,7 +52,7 @@ const Navbar = () => {
                   My Portal
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-amber-400 group-hover:w-full transition-all duration-300"></span>
                 </Link>
-                <Link to="/profile" className="text-slate-300 hover:text-amber-400 transition font-medium relative group">
+                <Link to="/student/profile" className="text-slate-300 hover:text-amber-400 transition font-medium relative group">
                   {user?.firstName || user?.email?.split('@')[0] || 'Profile'}
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-amber-400 group-hover:w-full transition-all duration-300"></span>
                 </Link>
@@ -112,7 +112,7 @@ const Navbar = () => {
                   <Link to="/student/dashboard" className="text-slate-300 hover:text-amber-400 transition font-medium">
                     My Portal
                   </Link>
-                  <Link to="/profile" className="text-slate-300 hover:text-amber-400 transition font-medium">
+                  <Link to="/student/profile" className="text-slate-300 hover:text-amber-400 transition font-medium">
                     Profile
                   </Link>
                   <button

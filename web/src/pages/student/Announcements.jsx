@@ -30,6 +30,10 @@ const Announcements = () => {
   }
 
   const announcementsList = announcements || [];
+  const educationalOutlooks = announcementsList.filter((item) => {
+    const text = `${item.title || ''} ${item.content || ''}`.toLowerCase();
+    return text.includes('outlook') || text.includes('weekly') || text.includes('market');
+  });
 
   return (
     <DetailPageLayout title="Announcements & Updates" iconName="announcement">
@@ -39,6 +43,24 @@ const Announcements = () => {
           <p className="text-gray-300 mb-4">
             Stay updated with the latest news, updates, and important information from the academy.
           </p>
+          <div className="bg-[#0B1220] rounded-lg p-4 border border-amber-500/30 text-sm text-amber-200">
+            Educational updates and market outlook content are for training purposes only and not financial advice.
+          </div>
+        </div>
+
+        <div className="bg-[#0B1220] rounded-lg p-5 border border-[rgba(255,255,255,0.08)]">
+          <h3 className="text-lg font-semibold text-white mb-2">Weekly Market Outlook</h3>
+          {educationalOutlooks.length > 0 ? (
+            <ul className="space-y-2 text-gray-300">
+              {educationalOutlooks.slice(0, 3).map((item) => (
+                <li key={item.id}>- {item.title}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-400 text-sm">
+              Weekly educational outlook updates will appear here once published by the training team.
+            </p>
+          )}
         </div>
 
         {announcementsList.length > 0 ? (

@@ -21,30 +21,18 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     try {
-      // Try to get token from Supabase session
+      // Single source of truth for auth token: Supabase session
       const { supabase } = await import('../config/supabase');
       const { data: { session }, error } = await supabase.auth.getSession();
       
       if (!error && session?.access_token) {
         config.headers.Authorization = `Bearer ${session.access_token}`;
-        console.log('[API] Request with Supabase token:', config.method?.toUpperCase(), config.url);
+        console.log('[API] Request with session token:', config.method?.toUpperCase(), config.url);
       } else {
-        // Fallback to localStorage token (for backward compatibility)
-        const token = localStorage.getItem('token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-          console.log('[API] Request with localStorage token:', config.method?.toUpperCase(), config.url);
-        } else {
-          console.log('[API] Request without auth token:', config.method?.toUpperCase(), config.url);
-        }
+        console.log('[API] Request without session token:', config.method?.toUpperCase(), config.url);
       }
     } catch (err) {
       console.error('[API] Error getting session for request:', err);
-      // If session fetch fails, try localStorage fallback
-      const token = localStorage.getItem('token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
     }
     return config;
   },
@@ -84,8 +72,8 @@ api.interceptors.response.use(
       const currentPath = window.location.pathname;
       if (currentPath !== '/login' && currentPath !== '/register' && currentPath !== '/admin/login') {
         console.log('[API] 401 error, redirecting to login');
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        localStorage.removeItem('token'); // Legacy cleanup
+        localStorage.removeItem('user'); // Legacy cleanup
         window.location.href = '/login';
       }
     }

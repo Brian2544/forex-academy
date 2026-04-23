@@ -1,7 +1,7 @@
 {
   "free": {
     "name": "Free",
-    "price": 0,
+    "price": 200.00,
     "currency": "USD",
     "features": [
       "Beginner course access",
@@ -12,7 +12,7 @@
   },
   "monthly": {
     "name": "Monthly Subscription",
-    "price": 29.99,
+    "price": 150.00,
     "currency": "USD",
     "features": [
       "Intermediate & Advanced courses",
@@ -24,7 +24,7 @@
   },
   "premium": {
     "name": "Premium",
-    "price": 99.99,
+    "price": 1000.00,
     "currency": "USD",
     "features": [
       "All Monthly features",

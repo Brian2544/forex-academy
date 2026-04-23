@@ -7,6 +7,19 @@ class CourseCard extends StatelessWidget {
 
   CourseCard({required this.course, this.onTap});
 
+  String _priceLabelForLevel(String level) {
+    switch (level.toLowerCase()) {
+      case 'beginner':
+        return '200 USD';
+      case 'intermediate':
+        return '150 USD';
+      case 'advanced':
+        return '100 USD';
+      default:
+        return '100 USD';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -34,13 +47,11 @@ class CourseCard extends StatelessWidget {
               Row(
                 children: [
                   Chip(label: Text(course.level)),
-                  if (course.isFree) ...[
-                    SizedBox(width: 8),
-                    Chip(
-                      label: Text('Free'),
-                      backgroundColor: Colors.green.withOpacity(0.2),
-                    ),
-                  ],
+                  SizedBox(width: 8),
+                  Chip(
+                    label: Text(_priceLabelForLevel(course.level)),
+                    backgroundColor: Colors.green.withOpacity(0.2),
+                  ),
                 ],
               ),
             ],

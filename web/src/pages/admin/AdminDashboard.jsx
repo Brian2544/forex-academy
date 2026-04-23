@@ -144,7 +144,7 @@ const AdminDashboard = () => {
               </Link>
 
               <Link
-                to="/admin/trainings?action=create"
+                to="/admin/live-trainings?action=create"
                 className="flex items-center space-x-3 p-4 bg-secondary-50 hover:bg-secondary-100 rounded-xl transition-colors group"
               >
                 <div className="w-10 h-10 bg-secondary-500 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
@@ -268,7 +268,7 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <Link
-                    to={`/admin/trainings/${training.id}`}
+                    to="/admin/live-trainings"
                     className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
                   >
                     View

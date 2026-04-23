@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import CourseCard from '../components/dashboard/CourseCard';
 import Loader from '../components/common/Loader';
 import api from '../services/api';
@@ -6,6 +7,10 @@ import { getIcon } from '../utils/icons';
 import { useAuth } from '../context/AuthContext';
 import { paymentService } from '../services/payment.service';
 import toast from 'react-hot-toast';
+import CourseOutlineSection from '../components/public/CourseOutlineSection';
+import { BRAND, COURSE_OUTLINE, TRUST_AND_SAFETY_TOPICS } from '../data/publicContent';
+import { getFormattedCoursePrice } from '../utils/coursePricing';
+import { learningCatalog } from '../data/learningCatalog';
 
 const Courses = () => {
   const { isAuthenticated, profile } = useAuth();
@@ -14,19 +19,33 @@ const Courses = () => {
   const [filter, setFilter] = useState('all');
   const [processingCourseId, setProcessingCourseId] = useState(null);
 
+  const normalizeLevel = (value) => String(value || '').trim().toLowerCase();
+  const getCanonicalLevel = (course) => {
+    const text = `${course?.level || ''} ${course?.title || ''} ${course?.description || ''}`.toLowerCase();
+    if (text.includes('beginner') || text.includes('foundation') || text.includes('basic')) return 'beginner';
+    if (text.includes('intermediate') || text.includes('technical')) return 'intermediate';
+    if (text.includes('advanced') || text.includes('professional') || text.includes('master')) return 'advanced';
+    return normalizeLevel(course?.level);
+  };
+  const getFallbackCourse = (level) => ({
+    id: `fallback-${level}`,
+    title: learningCatalog[level]?.title || `${level.charAt(0).toUpperCase() + level.slice(1)} Course`,
+    level,
+    description: learningCatalog[level]?.description || 'Course details will be available soon.',
+    lessons: learningCatalog[level]?.modules || [],
+    duration: level === 'beginner' ? 180 : level === 'intermediate' ? 240 : 300,
+    isFallback: true,
+  });
+
   useEffect(() => {
     fetchCourses();
-  }, [filter, isAuthenticated]);
+  }, [isAuthenticated]);
 
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const params = {};
-      if (filter !== 'all') {
-        params.level = filter;
-      }
       const endpoint = isAuthenticated ? '/student/courses' : '/courses';
-      const { data } = await api.get(endpoint, { params });
+      const { data } = await api.get(endpoint);
       const courseList = isAuthenticated ? data.data : data.data.courses;
       setCourses(courseList || []);
     } catch (error) {
@@ -36,16 +55,7 @@ const Courses = () => {
     }
   };
 
-  const formatPrice = (course) => {
-    if (!course?.price_ngn) {
-      return null;
-    }
-    return new Intl.NumberFormat('en-KE', {
-      style: 'currency',
-      currency: 'KES',
-      maximumFractionDigits: 0,
-    }).format(Number(course.price_ngn));
-  };
+  const formatPrice = (course) => getFormattedCoursePrice(course);
 
   const handlePay = async (courseId, courseLevel, courseTitle) => {
     if (!isAuthenticated) {
@@ -72,6 +82,27 @@ const Courses = () => {
   const isPrivileged = ['admin', 'super_admin', 'owner', 'content_admin', 'support_admin', 'finance_admin']
     .includes(profile?.role?.toLowerCase());
 
+  const coursesWithFallback = useMemo(() => {
+    const levels = ['beginner', 'intermediate', 'advanced'];
+    const byLevel = new Map();
+
+    courses.forEach((course) => {
+      const level = getCanonicalLevel(course);
+      if (levels.includes(level) && !byLevel.has(level)) byLevel.set(level, course);
+    });
+
+    levels.forEach((level) => {
+      if (!byLevel.has(level)) byLevel.set(level, getFallbackCourse(level));
+    });
+
+    return Array.from(byLevel.values());
+  }, [courses]);
+
+  const filteredCourses = useMemo(() => {
+    if (filter === 'all') return coursesWithFallback;
+    return coursesWithFallback.filter((course) => getCanonicalLevel(course) === filter);
+  }, [coursesWithFallback, filter]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#070A0F] via-[#0B1220] to-[#0F1A2E]">
       
@@ -83,8 +114,8 @@ const Courses = () => {
               Comprehensive <span className="text-gradient">Forex Trading</span> Courses
             </h1>
             <p className="text-[#B6C2E2] text-xl max-w-3xl mx-auto leading-relaxed">
-              Master the art of Forex trading with our structured, progressive learning system. 
-              From complete beginner to advanced professional, we have the perfect course for your skill level.
+              {BRAND.name} delivers a disciplined, progressive learning system from foundations to professional
+              trading practice.
             </p>
           </div>
         </div>
@@ -92,14 +123,20 @@ const Courses = () => {
         {/* Course Overview Section */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           {['beginner', 'intermediate', 'advanced'].map((level) => {
-            const course = courses.find((item) => item.level === level);
+            const course = coursesWithFallback.find((item) => getCanonicalLevel(item) === level);
             const display = {
               level: level.charAt(0).toUpperCase() + level.slice(1),
               iconName: level,
               description: course?.description || 'Course details will be available soon.',
               duration: level === 'beginner' ? '4-6 weeks' : level === 'intermediate' ? '6-8 weeks' : '8-12 weeks',
               lessons: level === 'beginner' ? '20+ lessons' : level === 'intermediate' ? '30+ lessons' : '40+ lessons',
-              price: course ? formatPrice(course) : 'Pricing coming soon',
+              price: formatPrice(course || { level }),
+              detailsPath:
+                level === 'beginner'
+                  ? '/courses/foundations'
+                  : level === 'intermediate'
+                    ? '/courses/technical-analysis'
+                    : '/courses/professional-practices',
             };
             const IconComponent = getIcon(display.iconName);
             return (
@@ -134,54 +171,29 @@ const Courses = () => {
                     {display.price}
                   </div>
                 </div>
+                <Link to={display.detailsPath} className="btn btn-outline w-full text-center">
+                  View Level Details
+                </Link>
               </div>
             );
           })}
         </div>
 
-        {/* What You'll Learn Section */}
-        <div className="card mb-12">
-          <h2 className="text-3xl font-bold text-[#F5F7FF] mb-6">What You'll Learn</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-xl font-semibold text-accent-600 mb-3">Core Concepts</h3>
-              <ul className="space-y-2 text-gray-700">
-                {(() => {
-                  const CheckIcon = getIcon('check');
-                  return [
-                    'Understanding currency pairs and market structure',
-                    'Market sessions and trading hours',
-                    'Fundamental vs technical analysis',
-                    'Reading and interpreting charts'
-                  ].map((item, idx) => (
-                    <li key={idx} className="flex items-start">
-                      {CheckIcon && <CheckIcon className="w-5 h-5 text-accent-600 mr-2 flex-shrink-0 mt-0.5" />}
-                      <span>{item}</span>
-                    </li>
-                  ));
-                })()}
+        <div className="mb-12">
+          <CourseOutlineSection outline={COURSE_OUTLINE} />
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          {TRUST_AND_SAFETY_TOPICS.map((topic) => (
+            <article key={topic.title} className="card">
+              <h3 className="text-xl font-semibold text-[#F5F7FF] mb-3">{topic.title}</h3>
+              <ul className="space-y-2 text-[#B6C2E2] text-sm">
+                {topic.points.map((point) => (
+                  <li key={point}>- {point}</li>
+                ))}
               </ul>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-accent-600 mb-3">Trading Skills</h3>
-              <ul className="space-y-2 text-gray-700">
-                {(() => {
-                  const CheckIcon = getIcon('check');
-                  return [
-                    'Risk management and position sizing',
-                    'Entry and exit strategies',
-                    'Trading psychology and discipline',
-                    'Building and testing trading systems'
-                  ].map((item, idx) => (
-                    <li key={idx} className="flex items-start">
-                      {CheckIcon && <CheckIcon className="w-5 h-5 text-accent-600 mr-2 flex-shrink-0 mt-0.5" />}
-                      <span>{item}</span>
-                    </li>
-                  ));
-                })()}
-              </ul>
-            </div>
-          </div>
+            </article>
+          ))}
         </div>
 
         <div className="flex flex-wrap gap-4 justify-center mb-8">
@@ -206,13 +218,13 @@ const Courses = () => {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.map((course) => {
-              const locked = !isPrivileged && isAuthenticated && course.isEntitled === false;
+            {filteredCourses.map((course) => {
+              const locked = !course.isFallback && !isPrivileged && isAuthenticated && course.isEntitled === false;
               const priceLabel = formatPrice(course);
 
               return (
                 <CourseCard
-                  key={course.id}
+                  key={course.id || `course-${getCanonicalLevel(course)}`}
                   course={course}
                   isLocked={locked}
                   priceLabel={priceLabel}
@@ -224,9 +236,13 @@ const Courses = () => {
           </div>
         )}
 
-        {!loading && courses.length === 0 && (
+        {!loading && filteredCourses.length === 0 && (
           <div className="text-center py-20">
-            <p className="text-neutral-600 text-lg">No courses found</p>
+            <p className="text-neutral-600 text-lg">
+              {filter === 'all'
+                ? 'No courses found'
+                : `No ${filter} courses are available yet`}
+            </p>
           </div>
         )}
       </div>

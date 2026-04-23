@@ -14,12 +14,20 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
-    setTimeout(() => {
-      toast.success('Message sent successfully! We\'ll respond within 24 hours.');
+
+    try {
+      const subject = encodeURIComponent(`[Sniper FX Support] ${formData.subject}`);
+      const body = encodeURIComponent(
+        `Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
+      );
+      window.location.href = `mailto:support@sniperfxacademy.com?subject=${subject}&body=${body}`;
+      toast.success('Opening your email client to send the support request.');
       setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (error) {
+      toast.error('Unable to open email client. Please email support directly.');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -90,14 +98,14 @@ const Contact = () => {
               <div className="space-y-3">
                 <div>
                   <p className="text-gray-400 text-sm mb-1">General Inquiries</p>
-                  <a href="mailto:info@forexacademy.com" className="text-amber-400 hover:text-amber-300 font-medium">
-                    info@forexacademy.com
+                  <a href="mailto:info@sniperfxacademy.com" className="text-amber-400 hover:text-amber-300 font-medium">
+                    info@sniperfxacademy.com
                   </a>
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm mb-1">Technical Support</p>
-                  <a href="mailto:support@forexacademy.com" className="text-amber-400 hover:text-amber-300 font-medium">
-                    support@forexacademy.com
+                  <a href="mailto:support@sniperfxacademy.com" className="text-amber-400 hover:text-amber-300 font-medium">
+                    support@sniperfxacademy.com
                   </a>
                 </div>
                 <div className="mt-4 p-3 bg-[#0F1A2E] rounded border border-[rgba(255,255,255,0.08)]">

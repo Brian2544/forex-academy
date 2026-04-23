@@ -19,30 +19,30 @@ const DashboardLayout = ({ children }) => {
   const getNavItems = () => {
     if (isAdmin) {
       return [
-        { path: '/admin/dashboard', label: 'Overview', icon: 'dashboard' },
+        { path: '/admin/overview', label: 'Overview', icon: 'dashboard' },
         { path: '/admin/students', label: 'Students', icon: 'user' },
         { path: '/admin/groups', label: 'Groups', icon: 'group' },
         { path: '/admin/chat-monitor', label: 'Chat Monitor', icon: 'chat' },
-        { path: '/admin/trainings', label: 'Live Trainings', icon: 'live' },
+        { path: '/admin/live-trainings', label: 'Live Trainings', icon: 'live' },
         { path: '/admin/lessons', label: 'Lessons', icon: 'course' },
         { path: '/admin/resources', label: 'Resources', icon: 'resource' },
         { path: '/admin/signals', label: 'Signals', icon: 'signal' },
         { path: '/admin/analytics', label: 'Analytics', icon: 'analysis' },
-        ...(user?.role === 'SUPER_ADMIN' || user?.role === 'OWNER' ? [
+        ...(['super_admin', 'owner'].includes(role) ? [
           { path: '/admin/finance', label: 'Finance', icon: 'finance' },
         ] : []),
-        ...(user?.role === 'OWNER' || user?.role === 'SUPER_ADMIN' ? [
+        ...(['owner', 'super_admin'].includes(role) ? [
           { path: '/admin/settings', label: 'Settings', icon: 'settings' },
         ] : []),
       ];
     } else if (isStudent) {
       return [
         { path: '/student/dashboard', label: 'Dashboard', icon: 'dashboard' },
-        { path: '/student/groups', label: 'My Groups', icon: 'group' },
-        { path: '/student/trainings', label: 'Live Classes', icon: 'live' },
-        { path: '/student/lessons', label: 'Lessons', icon: 'course' },
+        { path: '/chat/groups', label: 'My Groups', icon: 'group' },
+        { path: '/student/live-classes', label: 'Live Classes', icon: 'live' },
+        { path: '/student/courses/beginner', label: 'Lessons', icon: 'course' },
         { path: '/student/resources', label: 'Resources', icon: 'resource' },
-        { path: '/student/signals', label: 'Signals', icon: 'signal' },
+        { path: '/signals', label: 'Signals', icon: 'signal' },
       ];
     }
     return [];
@@ -70,7 +70,7 @@ const DashboardLayout = ({ children }) => {
         <div className="h-full flex flex-col">
           {/* Logo */}
           <div className="p-6 border-b border-[rgba(255,255,255,0.08)]">
-            <Link to={isAdmin ? '/admin/dashboard' : '/student/dashboard'} className="flex items-center space-x-3">
+            <Link to={isAdmin ? '/admin/overview' : '/student/dashboard'} className="flex items-center space-x-3">
               <div className="w-10 h-10 gradient-brand rounded-xl flex items-center justify-center shadow-md shadow-primary-500/30">
                 <span className="text-white font-black text-lg">FX</span>
               </div>
@@ -115,7 +115,7 @@ const DashboardLayout = ({ children }) => {
                 <div className="text-sm font-semibold text-[#F5F7FF] truncate">
                   {user?.name || user?.email?.split('@')[0] || 'User'}
                 </div>
-                <div className="text-xs text-[#B6C2E2] capitalize">{user?.role || 'Student'}</div>
+                <div className="text-xs text-[#B6C2E2] capitalize">{profile?.role || 'Student'}</div>
               </div>
             </div>
             <button
@@ -182,7 +182,7 @@ const DashboardLayout = ({ children }) => {
               {/* Profile Menu */}
               <div className="flex items-center space-x-3">
                 <Link
-                  to="/profile"
+                  to="/student/profile"
                   className="flex items-center space-x-2 px-3 py-2 hover:bg-[rgba(216,181,71,0.1)] rounded-lg transition-colors"
                 >
                   <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center text-white text-sm font-bold">

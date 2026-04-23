@@ -15,12 +15,16 @@ const Dashboard = () => {
   const [healthStatus, setHealthStatus] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Redirect admin users to admin dashboard (fallback check)
+  // Redirect based on trusted role from AuthContext profile
   useEffect(() => {
     if (!authLoading && user) {
-      const userRole = role || user?.role;
-      if (userRole && ['OWNER', 'SUPER_ADMIN', 'ADMIN', 'INSTRUCTOR'].includes(userRole)) {
-        navigate('/admin/dashboard', { replace: true });
+      const roleLower = (role || '').toLowerCase();
+      if (roleLower === 'owner') {
+        navigate('/owner/dashboard', { replace: true });
+      } else if (['admin', 'super_admin', 'content_admin', 'support_admin', 'finance_admin'].includes(roleLower)) {
+        navigate('/admin/overview', { replace: true });
+      } else if (roleLower === 'instructor') {
+        navigate('/instructor/overview', { replace: true });
       }
     }
   }, [user, role, authLoading, navigate]);
@@ -56,7 +60,7 @@ const Dashboard = () => {
       title: 'Beginner Course',
       description: 'Start your forex trading journey with fundamentals and basics',
       iconName: 'beginner',
-      link: '/dashboard/beginner-course',
+      link: '/student/courses/beginner',
       status: userStatus,
       statusColor: statusColor
     },
@@ -65,7 +69,7 @@ const Dashboard = () => {
       title: 'Intermediate Course',
       description: 'Advance your skills with intermediate trading strategies',
       iconName: 'intermediate',
-      link: '/dashboard/intermediate-course',
+      link: '/student/courses/intermediate',
       status: userStatus,
       statusColor: statusColor
     },
@@ -74,7 +78,7 @@ const Dashboard = () => {
       title: 'Advanced Course',
       description: 'Master advanced techniques and professional trading methods',
       iconName: 'advanced',
-      link: '/dashboard/advanced-course',
+      link: '/student/courses/advanced',
       status: userStatus,
       statusColor: statusColor
     },
@@ -83,7 +87,7 @@ const Dashboard = () => {
       title: 'Market Analysis',
       description: 'Daily/weekly analysis and economic calendar',
       iconName: 'analysis',
-      link: '/dashboard/market-analysis',
+      link: '/student/market-analysis',
       status: userStatus,
       statusColor: statusColor
     },
@@ -92,7 +96,7 @@ const Dashboard = () => {
       title: 'FAQs',
       description: 'Forex myths, common mistakes, scam awareness, and more',
       iconName: 'faq',
-      link: '/dashboard/faqs',
+      link: '/student/faqs',
       status: userStatus,
       statusColor: statusColor
     },
@@ -101,7 +105,7 @@ const Dashboard = () => {
       title: 'Communication Hub',
       description: 'Forums, announcements, Q&A, and direct support',
       iconName: 'communication',
-      link: '/dashboard/communication',
+      link: '/student/contact',
       status: userStatus,
       statusColor: statusColor
     },
@@ -110,7 +114,7 @@ const Dashboard = () => {
       title: 'Blog',
       description: 'Forex basics articles and educational content',
       iconName: 'blog',
-      link: '/dashboard/blog',
+      link: '/student/blog',
       status: userStatus,
       statusColor: statusColor
     },
@@ -119,7 +123,7 @@ const Dashboard = () => {
       title: 'Legal & Disclaimer',
       description: 'Risk disclaimer, terms, conditions, and privacy policy',
       iconName: 'legal',
-      link: '/dashboard/legal',
+      link: '/legal/disclaimer',
       status: userStatus,
       statusColor: statusColor
     },
@@ -128,7 +132,7 @@ const Dashboard = () => {
       title: 'Contact & Support',
       description: 'Contact form, email, WhatsApp support with response times',
       iconName: 'contact',
-      link: '/dashboard/contact',
+      link: '/student/contact',
       status: userStatus,
       statusColor: statusColor
     },
@@ -137,7 +141,7 @@ const Dashboard = () => {
       title: 'Referral System',
       description: 'Earn discounts by referring friends to the academy',
       iconName: 'referral',
-      link: '/dashboard/referral',
+      link: '/student/referral',
       status: userStatus,
       statusColor: statusColor
     },
@@ -146,7 +150,7 @@ const Dashboard = () => {
       title: 'Live Classes & Webinars',
       description: 'Schedule and join live trading classes and webinars',
       iconName: 'live',
-      link: '/dashboard/live-classes',
+      link: '/student/live-classes',
       status: userStatus,
       statusColor: statusColor
     }
@@ -217,7 +221,7 @@ const Dashboard = () => {
                 Read reviews from professionals, see before and after stories, screenshots, and video testimonials
               </p>
               <Link
-                to="/dashboard/testimonials"
+                to="/student/testimonials"
                 className="inline-flex items-center text-secondary-600 hover:text-secondary-700 font-medium group link-secondary"
               >
                 View Testimonials
@@ -237,7 +241,7 @@ const Dashboard = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#B6C2E2]">Role:</span>
-                  <span className="text-[#F5F7FF] capitalize font-medium">{user?.role || 'Professional'}</span>
+                  <span className="text-[#F5F7FF] capitalize font-medium">{role || 'Professional'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#B6C2E2]">Status:</span>
@@ -251,7 +255,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <Link
-                to="/profile"
+                to="/student/profile"
                 className="inline-flex items-center text-secondary-600 hover:text-secondary-700 font-medium group link-secondary"
               >
                 Edit Profile

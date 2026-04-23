@@ -4,6 +4,20 @@ import { logger } from '../../utils/logger.js';
 import { canAssignRole, ROLES } from '../../utils/roleUtils.js';
 import { bootstrapProfile } from '../../utils/profileBootstrap.js';
 
+const resolveSubscriptionStatus = (subscription) => {
+  if (!subscription) return 'inactive';
+  const now = new Date();
+  const trialEndsAt = subscription.trial_ends_at ? new Date(subscription.trial_ends_at) : null;
+  const periodEnd = subscription.current_period_end ? new Date(subscription.current_period_end) : null;
+
+  if (subscription.status === 'inactive' || subscription.status === 'canceled') return 'inactive';
+  if (trialEndsAt && trialEndsAt > now) return 'active';
+  if (periodEnd && periodEnd > now) return 'active';
+  if (subscription.status === 'active' && !trialEndsAt && !periodEnd) return 'active';
+  if ((periodEnd && periodEnd <= now) || (trialEndsAt && trialEndsAt <= now)) return 'expired';
+  return subscription.status || 'inactive';
+};
+
 /**
  * Get list of users with pagination and search
  * Allowed: owner, super_admin, finance_admin (read-only)
@@ -92,7 +106,9 @@ export const getUsers = asyncHandler(async (req, res) => {
     return {
       ...user,
       email: authUser?.email || 'N/A',
-      subscription_status: subscription?.status || 'inactive',
+      subscription_status: resolveSubscriptionStatus(subscription),
+      trial_ends_at: subscription?.trial_ends_at || null,
+      current_period_end: subscription?.current_period_end || null,
       subscription_override_by: audit ? {
         name: audit.actor_name,
         role: audit.actor_role,

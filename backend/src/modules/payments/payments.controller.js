@@ -3,6 +3,7 @@ import { supabaseAdmin } from '../../config/supabaseAdmin.js';
 import { config } from '../../config/env.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { logger } from '../../utils/logger.js';
+import { applyCanonicalCoursePrice, getCoursePriceUsdByLevel } from '../../utils/coursePricing.js';
 
 const ADMIN_ROLES = new Set([
   'admin',
@@ -79,25 +80,16 @@ const getCourseByTitle = async (courseTitle) => {
 const isUuid = (value) => /^[0-9a-fA-F-]{36}$/.test(String(value || ''));
 
 const getFallbackPrice = (level) => {
-  switch ((level || '').toLowerCase()) {
-    case 'beginner':
-      return 15000;
-    case 'intermediate':
-      return 30000;
-    case 'advanced':
-      return 50000;
-    default:
-      return 25000;
-  }
+  return getCoursePriceUsdByLevel(level);
 };
 
 const normalizeCoursePricing = (course) => {
-  const priceFromDb = Number(course?.price_ngn);
-  const price_ngn = Number.isFinite(priceFromDb) && priceFromDb > 0
-    ? priceFromDb
+  const canonicalCourse = applyCanonicalCoursePrice(course);
+  const priceFromCanonical = Number(canonicalCourse?.price_ngn);
+  const price_ngn = Number.isFinite(priceFromCanonical) && priceFromCanonical > 0
+    ? priceFromCanonical
     : getFallbackPrice(course?.level);
-  const currency = (config.paystack.currency || 'KES').toUpperCase();
-  return { ...course, price_ngn, currency };
+  return { ...canonicalCourse, price_ngn, currency: 'USD' };
 };
 
 const resolvePaystackCurrency = () => {
@@ -293,7 +285,7 @@ export const checkout = asyncHandler(async (req, res) => {
     });
   }
 
-  const { planId } = req.body;
+  const { planId, referralCode } = req.body;
   const userId = req.userId;
 
   if (!planId) {
@@ -434,6 +426,7 @@ export const checkout = asyncHandler(async (req, res) => {
           userId,
           planId,
           planName: plan.name,
+          referralCode: referralCode || null,
         },
       });
 
@@ -526,17 +519,20 @@ export const verify = asyncHandler(async (req, res) => {
         });
       }
 
-      // Store payment
-      await supabaseAdmin.from('payments').insert({
-        user_id: userId,
-        plan_id: planId,
-        reference: transaction.reference,
-        amount_kobo: transaction.amount,
-        currency: transaction.currency,
-        status: 'success',
-        provider: 'paystack',
-        metadata: transaction,
-      });
+      // Store payment (idempotent)
+      await supabaseAdmin.from('payments').upsert(
+        {
+          user_id: userId,
+          plan_id: planId,
+          reference: transaction.reference,
+          amount_kobo: transaction.amount,
+          currency: transaction.currency,
+          status: 'success',
+          provider: 'paystack',
+          metadata: transaction,
+        },
+        { onConflict: 'reference' }
+      );
 
       // Update subscription
       let currentPeriodEnd = new Date();
@@ -625,7 +621,14 @@ export const initializeCoursePayment = asyncHandler(async (req, res) => {
     });
   }
 
-  const { courseId, course_id: courseIdLegacy, id: courseIdAlias, courseLevel, courseTitle } = req.body;
+  const {
+    courseId,
+    course_id: courseIdLegacy,
+    id: courseIdAlias,
+    courseLevel,
+    courseTitle,
+    referralCode,
+  } = req.body;
   const userId = req.userId;
   const userEmail = req.user?.email;
 
@@ -667,6 +670,30 @@ export const initializeCoursePayment = asyncHandler(async (req, res) => {
   }
 
   course = normalizeCoursePricing(course);
+  const userRole = await getUserRole(userId);
+  if (!isAdminRole(userRole)) {
+    const now = new Date().toISOString();
+    const { data: existingEntitlement } = await supabaseAdmin
+      .from('entitlements')
+      .select('id, status, expires_at')
+      .eq('user_id', userId)
+      .eq('course_id', course.id)
+      .eq('active', true)
+      .maybeSingle();
+
+    const hasActiveEntitlement = !!existingEntitlement
+      && existingEntitlement.status !== 'expired'
+      && (!existingEntitlement.expires_at || existingEntitlement.expires_at > now);
+
+    if (hasActiveEntitlement) {
+      return res.status(409).json({
+        success: false,
+        code: 'COURSE_ALREADY_ENTITLED',
+        message: 'You already have active access to this course.',
+      });
+    }
+  }
+
   const amountKes = Number(course.price_ngn || 0);
   if (!Number.isFinite(amountKes) || amountKes <= 0) {
     return res.status(400).json({
@@ -717,6 +744,7 @@ export const initializeCoursePayment = asyncHandler(async (req, res) => {
         course_id: course.id,
         course_title: course.title,
         course_level: course.level,
+        referralCode: referralCode || null,
       },
     });
 

@@ -1,14 +1,20 @@
 import DetailPageLayout from '../../components/dashboard/DetailPageLayout';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { getIcon } from '../../utils/icons';
 import { useAuth } from '../../context/AuthContext';
+import { getStoredReferralCode, storeReferralCode } from '../../utils/referral';
 
 const Referral = () => {
   const { profile } = useAuth();
   const [copied, setCopied] = useState(false);
-  const referralCode = profile?.referral_code || 'FX2024-USER';
+  const fallbackReferral = profile?.id ? `SFX-${String(profile.id).slice(0, 8).toUpperCase()}` : 'SFX-USER';
+  const referralCode = profile?.referral_code || getStoredReferralCode() || fallbackReferral;
   const referralLink = `${window.location.origin}/register?ref=${referralCode}`;
+
+  useEffect(() => {
+    storeReferralCode(referralCode);
+  }, [referralCode]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(referralLink);
@@ -102,6 +108,14 @@ const Referral = () => {
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="bg-[#0B1220] rounded-lg p-6 border border-[rgba(255,255,255,0.08)]">
+          <h3 className="text-xl font-semibold text-white mb-3">Referral Engine Status</h3>
+          <p className="text-gray-300 text-sm">
+            Referral links are active and stored for checkout metadata. Automated discount settlement remains
+            backend-controlled and will apply once referral ledger rules are enabled server-side.
+          </p>
         </div>
 
         <div className="bg-[#0B1220] rounded-lg p-6 border border-[rgba(255,255,255,0.08)]">

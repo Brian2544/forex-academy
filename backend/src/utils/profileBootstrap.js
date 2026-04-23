@@ -123,6 +123,10 @@ export const ensureProfileExists = async (userId, userEmail) => {
   }
 
   try {
+    const normalizedEmail = (userEmail || '').trim().toLowerCase();
+    const ownerEmails = getOwnerEmails();
+    const isOwner = ownerEmails.includes(normalizedEmail);
+
     // Quick check if profile exists
     const { data: existingProfile } = await supabaseAdmin
       .from('profiles')
@@ -131,6 +135,11 @@ export const ensureProfileExists = async (userId, userEmail) => {
       .maybeSingle();
 
     if (existingProfile) {
+      // Keep owner role server-authoritative even for previously-created profiles.
+      if (isOwner && existingProfile.role !== ROLES.OWNER) {
+        logger.info(`Owner email detected for existing profile ${userId}, forcing owner role`);
+        return await bootstrapProfile(userId, userEmail);
+      }
       return existingProfile;
     }
 

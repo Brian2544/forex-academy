@@ -1,7 +1,14 @@
 import { Link } from 'react-router-dom';
 import { getIcon } from '../utils/icons';
+import { BRAND, TRUST_AND_SAFETY_TOPICS } from '../data/publicContent';
 
 const Home = () => {
+  const scrollToReviews = () => {
+    const reviewsSection = document.getElementById('reviews-section');
+    if (!reviewsSection) return;
+    reviewsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <div className="min-h-screen bg-[#0A0E1A]">
       
@@ -32,8 +39,11 @@ const Home = () => {
             </h1>
             
             {/* Subheading */}
-            <p className="text-lg md:text-xl text-[#B6C2E2] mb-5 max-w-3xl mx-auto font-medium leading-relaxed">
-              Transform your trading journey with expert-led courses, live signals, and professional mentorship
+            <p className="text-lg md:text-xl text-[#B6C2E2] mb-2 max-w-3xl mx-auto font-medium leading-relaxed">
+              {BRAND.name}
+            </p>
+            <p className="text-base md:text-lg text-[#B6C2E2] mb-5 max-w-3xl mx-auto leading-relaxed">
+              {BRAND.slogan}
             </p>
             
             {/* CTA Buttons */}
@@ -42,7 +52,7 @@ const Home = () => {
                 to="/register" 
                 className="group relative px-8 py-3 bg-gradient-to-r from-primary-500 via-primary-600 to-secondary-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-glow-primary-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1"
               >
-                <span className="relative z-10">Start Learning Free</span>
+                <span className="relative z-10">Start Learning Now</span>
                 <div className="absolute inset-0 bg-gradient-to-r from-secondary-500 via-primary-500 to-secondary-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Link>
               <Link 
@@ -59,10 +69,15 @@ const Home = () => {
                 <div className="text-3xl md:text-2xl font-black bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent mb-1">10K+</div>
                 <div className="text-xs md:text-sm font-semibold text-[#B6C2E2]">Active Professionals</div>
               </div>
-              <div className="text-center p-2.5 bg-[#0B1220]/60 backdrop-blur-sm rounded-xl border border-[rgba(216,181,71,0.2)] hover:border-secondary-300 hover:shadow-md transition-all duration-300">
+              <button
+                type="button"
+                onClick={scrollToReviews}
+                aria-label="View student reviews"
+                className="text-center p-2.5 bg-[#0B1220]/60 backdrop-blur-sm rounded-xl border border-[rgba(216,181,71,0.2)] hover:border-secondary-300 hover:shadow-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E1A]"
+              >
                 <div className="text-3xl md:text-2xl font-black bg-gradient-to-r from-secondary-500 via-primary-500 to-secondary-500 bg-clip-text text-transparent mb-1">500+</div>
                 <div className="text-xs md:text-sm font-semibold text-[#B6C2E2]">5-Star Reviews</div>
-              </div>
+              </button>
               <div className="text-center p-2.5 bg-[#0B1220]/60 backdrop-blur-sm rounded-xl border border-[rgba(216,181,71,0.2)] hover:border-primary-300 hover:shadow-md transition-all duration-300">
                 <div className="text-3xl md:text-2xl font-black bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-clip-text text-transparent mb-1">50+</div>
                 <div className="text-xs md:text-sm font-semibold text-[#B6C2E2]">Expert Instructors</div>
@@ -72,6 +87,25 @@ const Home = () => {
                 <div className="text-xs md:text-sm font-semibold text-[#B6C2E2]">Support</div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-[#0A0E1A]">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+            <Link to="/about" className="card hover:border-primary-300 transition-colors text-center">
+              <h3 className="text-[#F5F7FF] font-semibold">About Academy</h3>
+            </Link>
+            <Link to="/library" className="card hover:border-primary-300 transition-colors text-center">
+              <h3 className="text-[#F5F7FF] font-semibold">Books & Library</h3>
+            </Link>
+            <Link to="/faqs" className="card hover:border-primary-300 transition-colors text-center">
+              <h3 className="text-[#F5F7FF] font-semibold">FAQs & Troubleshooting</h3>
+            </Link>
+            <Link to="/support" className="card hover:border-primary-300 transition-colors text-center">
+              <h3 className="text-[#F5F7FF] font-semibold">Contact & Support</h3>
+            </Link>
           </div>
         </div>
       </section>
@@ -143,6 +177,26 @@ const Home = () => {
         </div>
       </section>
 
+      <section className="py-20 bg-[#0A0E1A]">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-[#F5F7FF]">Education & Risk Awareness</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {TRUST_AND_SAFETY_TOPICS.map((topic) => (
+              <article key={topic.title} className="card">
+                <h3 className="text-xl font-semibold text-[#F5F7FF] mb-3">{topic.title}</h3>
+                <ul className="text-[#B6C2E2] space-y-2 text-sm">
+                  {topic.points.map((point) => (
+                    <li key={point}>- {point}</li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Course Levels Section */}
       <section className="py-24 bg-[#0A0E1A] relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(216,181,71,0.05),transparent_50%)]"></div>
@@ -161,21 +215,21 @@ const Home = () => {
                 color: 'green',
                 description: 'Perfect for complete beginners. Learn the fundamentals of Forex trading from scratch.',
                 topics: ['What is Forex Trading', 'Currency Pairs Explained', 'Market Sessions', 'Basic Terminology'],
-                price: 'Free'
+                price: '200 USD'
               },
               {
                 level: 'Intermediate',
                 color: 'blue',
                 description: 'For traders who understand basics. Master technical analysis and trading strategies.',
                 topics: ['Support & Resistance', 'Candlestick Patterns', 'Risk Management', 'Trading Psychology'],
-                price: '$29.99/mo'
+                price: '150 USD'
               },
               {
                 level: 'Advanced',
                 color: 'purple',
                 description: 'For serious traders. Learn institutional trading strategies and advanced techniques.',
                 topics: ['Smart Money Concepts', 'Order Blocks', 'Multi-Timeframe Analysis', 'Trade Management'],
-                price: '$99.99/mo'
+                price: '100 USD'
               }
             ].map((course, index) => (
               <div 
@@ -238,7 +292,7 @@ const Home = () => {
       </section>
 
       {/* Social Proof Section */}
-      <section className="py-24 bg-[#0A0E1A] relative">
+      <section id="reviews-section" className="py-24 bg-[#0A0E1A] relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(216,181,71,0.05),transparent_50%)]"></div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-16">

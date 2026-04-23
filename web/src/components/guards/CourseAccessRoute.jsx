@@ -7,6 +7,7 @@ import CoursePaywall from '../payments/CoursePaywall';
 import { paymentService } from '../../services/payment.service';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
+import { getFormattedCoursePrice } from '../../utils/coursePricing';
 
 const CourseAccessRoute = ({ courseLevel, children }) => {
   const { isAuthenticated, profile, loading } = useAuth();
@@ -46,11 +47,7 @@ const CourseAccessRoute = ({ courseLevel, children }) => {
     );
   }
 
-  const formatPrice = new Intl.NumberFormat('en-KE', {
-    style: 'currency',
-    currency: 'KES',
-    maximumFractionDigits: 0,
-  }).format(Number(course.price_ngn || 0));
+  const formatPrice = getFormattedCoursePrice(course);
 
   if (isPrivileged || course.isEntitled) {
     return children;

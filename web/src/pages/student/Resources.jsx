@@ -10,6 +10,7 @@ const Resources = () => {
   const { profile } = useAuth();
   const [typeFilter, setTypeFilter] = useState('');
   const [courseFilter, setCourseFilter] = useState('');
+  const [search, setSearch] = useState('');
 
   const { data: resourcesData, isLoading } = useQuery({
     queryKey: ['student-resources', typeFilter, courseFilter],
@@ -36,6 +37,22 @@ const Resources = () => {
     .includes(profile?.role?.toLowerCase());
   const visibleCourses = isPrivileged ? courses : courses.filter((course) => course.isEntitled);
   const courseMap = new Map(courses.map((course) => [course.id, course]));
+  const getResourceCategory = (resource) => {
+    const title = (resource.title || '').toLowerCase();
+    if (title.includes('ebook') || title.includes('manual')) return 'ebook/manual';
+    if (title.includes('worksheet') || title.includes('guide')) return 'worksheet/guide';
+    if (resource.type === 'video') return 'replay/video';
+    return 'general';
+  };
+  const filteredResources = resources.filter((resource) => {
+    const query = search.trim().toLowerCase();
+    if (!query) return true;
+    return (
+      (resource.title || '').toLowerCase().includes(query) ||
+      (resource.type || '').toLowerCase().includes(query) ||
+      getResourceCategory(resource).includes(query)
+    );
+  });
 
   const getTypeIcon = (type) => {
     switch (type) {
@@ -73,6 +90,12 @@ const Resources = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="px-4 py-2 border border-white/10 bg-[#0B1220] text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 md:col-span-2"
+            placeholder="Search by title, type, or category (e.g. ebook, worksheet, video)"
+          />
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
@@ -105,14 +128,14 @@ const Resources = () => {
           </div>
         )}
 
-        {resources.length === 0 ? (
+        {filteredResources.length === 0 ? (
           <div className="bg-[#0B1220] rounded-lg p-12 border border-white/10 text-center">
             <h3 className="text-xl font-semibold text-white mb-2">No resources yet</h3>
             <p className="text-gray-400">Check back soon for newly uploaded materials.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {resources.map((resource) => (
+            {filteredResources.map((resource) => (
               <div
                 key={resource.id}
                 className="bg-[#0B1220] rounded-lg p-6 border border-white/10 hover:border-amber-500/50 transition-colors"
@@ -125,6 +148,7 @@ const Resources = () => {
                     <div>
                       <h3 className="font-semibold text-white">{resource.title}</h3>
                       <p className="text-xs text-gray-400 capitalize">{resource.type}</p>
+                      <p className="text-xs text-gray-500 capitalize">Category: {getResourceCategory(resource)}</p>
                       {resource.course_id && courseMap.get(resource.course_id) && (
                         <p className="text-xs text-gray-500">
                           Course: {courseMap.get(resource.course_id).title}

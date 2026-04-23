@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import Loader from '../common/Loader';
+import { storeReferralCode } from '../../utils/referral';
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +16,14 @@ const RegisterForm = () => {
   const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get('ref');
+
+  useEffect(() => {
+    if (referralCode) {
+      storeReferralCode(referralCode);
+    }
+  }, [referralCode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

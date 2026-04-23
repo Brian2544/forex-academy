@@ -8,6 +8,7 @@ const Signals = () => {
   const [signals, setSignals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchSignals();
@@ -16,6 +17,7 @@ const Signals = () => {
   const fetchSignals = async () => {
     try {
       setLoading(true);
+      setError('');
       const params = {};
       if (filter !== 'all') {
         params.status = filter;
@@ -24,6 +26,8 @@ const Signals = () => {
       setSignals(data.data.signals);
     } catch (error) {
       console.error('Error fetching signals:', error);
+      setError('Signals feed is temporarily unavailable. You can still continue with courses and webinars.');
+      setSignals([]);
     } finally {
       setLoading(false);
     }
@@ -96,9 +100,18 @@ const Signals = () => {
           </div>
         )}
 
+        {!!error && (
+          <div className="card border-yellow-500/50 bg-yellow-500/10 mt-8">
+            <p className="text-yellow-400 text-sm">{error}</p>
+          </div>
+        )}
+
         {!loading && signals.length === 0 && (
           <div className="text-center py-20">
-            <p className="text-gray-400 text-lg">No signals found</p>
+            <p className="text-gray-400 text-lg">No signals found right now.</p>
+            <p className="text-gray-500 text-sm mt-2">
+              Check back later for new educational signal breakdowns and market setups.
+            </p>
           </div>
         )}
 

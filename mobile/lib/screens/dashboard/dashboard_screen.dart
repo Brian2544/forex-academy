@@ -14,6 +14,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<Course> _courses = [];
   bool _isLoading = true;
 
+  String _priceLabelForLevel(String level) {
+    switch (level.toLowerCase()) {
+      case 'beginner':
+        return '200 USD';
+      case 'intermediate':
+        return '150 USD';
+      case 'advanced':
+        return '100 USD';
+      default:
+        return '100 USD';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -60,9 +73,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: ListTile(
                     title: Text(course.title),
                     subtitle: Text(course.description),
-                    trailing: course.isFree
-                        ? Chip(label: Text('Free'))
-                        : null,
+                    trailing: Chip(label: Text(_priceLabelForLevel(course.level))),
                     onTap: () {
                       Navigator.push(
                         context,

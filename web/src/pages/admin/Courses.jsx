@@ -4,6 +4,7 @@ import api from '../../services/api';
 import { Plus, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
+import { getCoursePriceUsdByLevel, formatUsdPrice } from '../../utils/coursePricing';
 
 const Courses = () => {
   const queryClient = useQueryClient();
@@ -115,7 +116,7 @@ const Courses = () => {
                 <tr>
                   <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Title</th>
                   <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Level</th>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Price (NGN)</th>
+                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Price (USD)</th>
                   <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Status</th>
                   <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Created</th>
                   <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Actions</th>
@@ -145,9 +146,7 @@ const Courses = () => {
                         </span>
                       </td>
                       <td className="py-4 px-6 text-sm text-gray-700">
-                        {course.price_ngn
-                          ? new Intl.NumberFormat('en-NG', { style: 'currency', currency: course.currency || 'NGN', maximumFractionDigits: 0 }).format(Number(course.price_ngn))
-                          : '—'}
+                        {formatUsdPrice(getCoursePriceUsdByLevel(course.level) || Number(course.price_ngn || 0))}
                       </td>
                       <td className="py-4 px-6">
                         <button
@@ -237,7 +236,7 @@ const CreateCourseModal = ({ onClose }) => {
       level,
       is_active: isActive,
       price_ngn: Number.isFinite(parsedPrice) ? parsedPrice : null,
-      currency: 'NGN',
+      currency: 'USD',
     });
   };
 
@@ -278,7 +277,7 @@ const CreateCourseModal = ({ onClose }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Price (NGN)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Price (USD)</label>
             <input
               type="number"
               min="0"

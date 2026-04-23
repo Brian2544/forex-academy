@@ -3,16 +3,24 @@ import { Lock, Unlock } from 'lucide-react';
 
 const CourseCard = ({ course, progress, isLocked = false, onPay, priceLabel, isProcessing = false }) => {
   const levelColors = {
-    beginner: 'bg-green-500/20 text-green-400',
-    intermediate: 'bg-blue-500/20 text-blue-400',
-    advanced: 'bg-purple-500/20 text-purple-400'
+    beginner: 'bg-secondary-100 text-secondary-700',
+    intermediate: 'bg-primary-100 text-primary-700',
+    advanced: 'bg-purple-100 text-purple-700'
+  };
+  const getCanonicalLevel = () => {
+    const text = `${course?.level || ''} ${course?.title || ''} ${course?.description || ''}`.toLowerCase();
+    if (text.includes('beginner') || text.includes('foundation') || text.includes('basic')) return 'beginner';
+    if (text.includes('intermediate') || text.includes('technical')) return 'intermediate';
+    if (text.includes('advanced') || text.includes('professional') || text.includes('master')) return 'advanced';
+    return String(course?.level || '').trim().toLowerCase();
   };
 
   // Map course level to route
   const getCourseRoute = () => {
-    if (course.level === 'beginner') return '/student/courses/beginner';
-    if (course.level === 'intermediate') return '/student/courses/intermediate';
-    if (course.level === 'advanced') return '/student/courses/advanced';
+    const level = getCanonicalLevel();
+    if (level === 'beginner') return '/student/courses/beginner';
+    if (level === 'intermediate') return '/student/courses/intermediate';
+    if (level === 'advanced') return '/student/courses/advanced';
     // Fallback to courses list if level doesn't match
     return '/courses';
   };
@@ -25,9 +33,7 @@ const CourseCard = ({ course, progress, isLocked = false, onPay, priceLabel, isP
             {course.title}
           </h3>
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-            course.level === 'beginner' ? 'bg-secondary-100 text-secondary-700' :
-            course.level === 'intermediate' ? 'bg-primary-100 text-primary-700' :
-            'bg-primary-100 text-primary-700'
+            levelColors[getCanonicalLevel()] || 'bg-primary-100 text-primary-700'
           }`}>
             {course.level}
           </span>

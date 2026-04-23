@@ -52,7 +52,7 @@ const Students = () => {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-students'] });
       queryClient.invalidateQueries({ queryKey: ['admin-student'] });
-      if (variables.trialDays) {
+      if (typeof variables.trialDays === 'number') {
         toast.success(`${variables.trialDays}-day trial granted successfully`);
       } else {
         toast.success(`Subscription ${variables.active ? 'activated' : 'deactivated'} successfully`);
@@ -145,7 +145,7 @@ const Students = () => {
                     <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Name</th>
                     <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Email</th>
                     <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Country</th>
-                    <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Subscription</th>
+                    <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Status</th>
                     <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Course</th>
                     <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Course Status</th>
                     <th className="text-left py-3 px-6 text-sm font-semibold text-gray-700">Activated</th>
@@ -260,12 +260,30 @@ const Students = () => {
                                   </button>
                                   <button
                                     onClick={() => {
+                                      overrideSubscriptionMutation.mutate({ studentUserId: student.id, trialDays: 3 });
+                                      setTrialMenuOpen(null);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-[#F5F7FF] hover:bg-[rgba(255,255,255,0.05)]"
+                                  >
+                                    3 days
+                                  </button>
+                                  <button
+                                    onClick={() => {
                                       overrideSubscriptionMutation.mutate({ studentUserId: student.id, trialDays: 7 });
                                       setTrialMenuOpen(null);
                                     }}
                                     className="w-full text-left px-4 py-2 text-sm text-[#F5F7FF] hover:bg-[rgba(255,255,255,0.05)]"
                                   >
                                     1 week
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      overrideSubscriptionMutation.mutate({ studentUserId: student.id, trialDays: 14 });
+                                      setTrialMenuOpen(null);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-[#F5F7FF] hover:bg-[rgba(255,255,255,0.05)]"
+                                  >
+                                    14 days
                                   </button>
                                   <button
                                     onClick={() => {
@@ -331,7 +349,7 @@ const StudentDetail = ({ id }) => {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-students'] });
       queryClient.invalidateQueries({ queryKey: ['admin-student', id] });
-      if (variables.trialDays) {
+      if (typeof variables.trialDays === 'number') {
         toast.success(`${variables.trialDays}-day trial granted successfully`);
       } else {
         toast.success(`Subscription ${variables.active ? 'activated' : 'deactivated'} successfully`);
@@ -495,6 +513,12 @@ const StudentDetail = ({ id }) => {
                     className="w-full text-left px-4 py-2 text-sm text-[#F5F7FF] hover:bg-[rgba(255,255,255,0.05)]"
                   >
                     1 week
+                  </button>
+                  <button
+                    onClick={() => overrideSubscriptionMutation.mutate({ studentUserId: id, trialDays: 14 })}
+                    className="w-full text-left px-4 py-2 text-sm text-[#F5F7FF] hover:bg-[rgba(255,255,255,0.05)]"
+                  >
+                    2 weeks
                   </button>
                   <button
                     onClick={() => overrideSubscriptionMutation.mutate({ studentUserId: id, trialDays: 30 })}

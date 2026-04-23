@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
-import { Users, Search, Save, X, CheckCircle, XCircle } from 'lucide-react';
+import { Users, Search, Save, X } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import Loader from '../../components/common/Loader';
@@ -23,6 +23,7 @@ const OwnerDashboard = () => {
       });
       return response.data.data;
     },
+    refetchInterval: 5000,
   });
 
   const { profile: currentProfile, refreshProfile } = useAuth();
@@ -61,13 +62,38 @@ const OwnerDashboard = () => {
   });
 
   const overrideSubscriptionMutation = useMutation({
-    mutationFn: async ({ studentUserId, active, reason }) => {
-      const response = await api.post(`/admin/subscription/override/${studentUserId}`, { active, reason });
+    mutationFn: async ({ studentUserId, active, reason, trialDays }) => {
+      const payload = {};
+      if (typeof active === 'boolean') {
+        payload.active = active;
+      }
+      if (reason) {
+        payload.reason = reason;
+      }
+      if (typeof trialDays === 'number') {
+        payload.trialDays = trialDays;
+      }
+      const response = await api.post(`/admin/subscription/override/${studentUserId}`, payload);
       return response.data;
     },
     onSuccess: (data, variables) => {
+      queryClient.setQueriesData({ queryKey: ['owner-users'] }, (oldData) => {
+        if (!oldData?.users) return oldData;
+        return {
+          ...oldData,
+          users: oldData.users.map((user) =>
+            user.id === variables.studentUserId
+              ? { ...user, subscription_status: variables.active ? 'active' : 'inactive' }
+              : user
+          ),
+        };
+      });
       queryClient.invalidateQueries({ queryKey: ['owner-users'] });
-      toast.success(`Subscription ${variables.active ? 'activated' : 'deactivated'} successfully`);
+      if (typeof variables.trialDays === 'number') {
+        toast.success(`Access activated for ${variables.trialDays} day${variables.trialDays > 1 ? 's' : ''}`);
+      } else {
+        toast.success(`Subscription ${variables.active ? 'activated' : 'deactivated'} successfully`);
+      }
     },
     onError: (error) => {
       const message = error.response?.data?.message || 'Failed to update subscription';
@@ -96,6 +122,37 @@ const OwnerDashboard = () => {
     setNewRole('');
   };
 
+  const handleActionSelect = (user, action) => {
+    if (!action) return;
+    if (action === 'edit_role') {
+      handleEdit(user);
+      return;
+    }
+    if (action === 'activate_1_day') {
+      overrideSubscriptionMutation.mutate({ studentUserId: user.id, trialDays: 1 });
+      return;
+    }
+    if (action === 'activate_3_days') {
+      overrideSubscriptionMutation.mutate({ studentUserId: user.id, trialDays: 3 });
+      return;
+    }
+    if (action === 'activate_1_week') {
+      overrideSubscriptionMutation.mutate({ studentUserId: user.id, trialDays: 7 });
+      return;
+    }
+    if (action === 'activate_14_days') {
+      overrideSubscriptionMutation.mutate({ studentUserId: user.id, trialDays: 14 });
+      return;
+    }
+    if (action === 'activate_1_month') {
+      overrideSubscriptionMutation.mutate({ studentUserId: user.id, trialDays: 30 });
+      return;
+    }
+    if (action === 'deactivate_subscription') {
+      overrideSubscriptionMutation.mutate({ studentUserId: user.id, active: false });
+    }
+  };
+
   const getRoleBadgeColor = (role) => {
     const roleLower = role?.toLowerCase();
     if (roleLower === 'owner') return 'bg-purple-100 text-purple-800';
@@ -105,6 +162,19 @@ const OwnerDashboard = () => {
     if (roleLower === 'support_admin') return 'bg-green-100 text-green-800';
     if (roleLower === 'finance_admin') return 'bg-yellow-100 text-yellow-800';
     return 'bg-gray-100 text-gray-800';
+  };
+
+  const formatRemainingDuration = (user) => {
+    if (user.subscription_status !== 'active') return '';
+    const periodEnd = user.current_period_end || user.trial_ends_at;
+    if (!periodEnd) return '';
+    const end = new Date(periodEnd);
+    const now = new Date();
+    const diffMs = end.getTime() - now.getTime();
+    if (!Number.isFinite(diffMs) || diffMs <= 0) return '';
+    const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    if (days <= 1) return 'active until today';
+    return `active until ${format(end, 'MMM d, yyyy')}`;
   };
 
   const allRoles = [
@@ -155,7 +225,7 @@ const OwnerDashboard = () => {
                     <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Name</th>
                     <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Email</th>
                     <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Role</th>
-                    <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Subscription</th>
+                    <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Status</th>
                     <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Joined</th>
                     <th className="text-left py-3 px-6 text-sm font-semibold text-[#F5F7FF]">Actions</th>
                   </tr>
@@ -213,7 +283,9 @@ const OwnerDashboard = () => {
                                       : 'bg-gray-100 text-gray-800'
                                   }`}
                                 >
-                                  {user.subscription_status || 'inactive'}
+                                  {user.subscription_status === 'active'
+                                    ? `active${formatRemainingDuration(user) ? ` (${formatRemainingDuration(user)})` : ''}`
+                                    : (user.subscription_status || 'inactive')}
                                 </span>
                                 {user.subscription_override_by && (
                                   <div className="text-xs text-[#7E8AAE]">
@@ -258,38 +330,29 @@ const OwnerDashboard = () => {
                                 </button>
                               </div>
                             ) : (
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => handleEdit(user)}
-                                  className="text-orange-600 hover:text-orange-700"
-                                  title="Edit role"
-                                >
-                                  <Users className="w-4 h-4" />
-                                </button>
+                              <select
+                                defaultValue=""
+                                onChange={(e) => {
+                                  const selectedAction = e.target.value;
+                                  handleActionSelect(user, selectedAction);
+                                  e.target.value = '';
+                                }}
+                                disabled={updateRoleMutation.isLoading || overrideSubscriptionMutation.isLoading}
+                                className="px-2 py-1 text-xs border border-[rgba(255,255,255,0.08)] rounded-lg bg-[#0A0E1A] text-[#F5F7FF] focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
+                              >
+                                <option value="">Select action</option>
+                                <option value="edit_role">Edit role</option>
                                 {user.role?.toLowerCase() === 'student' && (
                                   <>
-                                    {user.subscription_status === 'active' ? (
-                                      <button
-                                        onClick={() => overrideSubscriptionMutation.mutate({ studentUserId: user.id, active: false })}
-                                        disabled={overrideSubscriptionMutation.isLoading}
-                                        className="text-red-600 hover:text-red-700 disabled:opacity-50"
-                                        title="Deactivate subscription"
-                                      >
-                                        <XCircle className="w-4 h-4" />
-                                      </button>
-                                    ) : (
-                                      <button
-                                        onClick={() => overrideSubscriptionMutation.mutate({ studentUserId: user.id, active: true })}
-                                        disabled={overrideSubscriptionMutation.isLoading}
-                                        className="text-green-600 hover:text-green-700 disabled:opacity-50"
-                                        title="Activate subscription"
-                                      >
-                                        <CheckCircle className="w-4 h-4" />
-                                      </button>
-                                    )}
+                                    <option value="activate_1_day">Activate - 1 day</option>
+                                    <option value="activate_3_days">Activate - 3 days</option>
+                                    <option value="activate_1_week">Activate - 1 week</option>
+                                    <option value="activate_14_days">Activate - 14 days</option>
+                                    <option value="activate_1_month">Activate - 1 month</option>
+                                    <option value="deactivate_subscription">Deactivate subscription</option>
                                   </>
                                 )}
-                              </div>
+                              </select>
                             )}
                           </td>
                         </tr>

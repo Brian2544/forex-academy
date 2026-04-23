@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '../../config/supabaseAdmin.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { logger } from '../../utils/logger.js';
+import { applyCanonicalCoursePrice } from '../../utils/coursePricing.js';
 
 const ADMIN_ROLES = new Set([
   'admin',
@@ -136,7 +137,7 @@ export const getCourses = asyncHandler(async (req, res) => {
   }
 
   const enrichedCourses = (data || []).map((course) => ({
-    ...course,
+    ...applyCanonicalCoursePrice(course),
     isEntitled: isAdmin ? true : entitledCourseIds.includes(course.id),
   }));
 
@@ -185,7 +186,7 @@ export const getCourse = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    data,
+    data: applyCanonicalCoursePrice(data),
   });
 });
 

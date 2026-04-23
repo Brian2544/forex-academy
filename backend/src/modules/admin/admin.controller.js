@@ -231,6 +231,29 @@ const isMissingTableError = (error) => {
   );
 };
 
+const isMissingColumnError = (error, columnName) => {
+  const message = error?.message || '';
+  return (
+    error?.code === '42703' ||
+    message.includes('column') ||
+    (columnName ? message.includes(columnName) : false)
+  );
+};
+
+const resolveSubscriptionStatus = (subscription) => {
+  if (!subscription) return 'inactive';
+  const now = new Date();
+  const trialEndsAt = subscription.trial_ends_at ? new Date(subscription.trial_ends_at) : null;
+  const periodEnd = subscription.current_period_end ? new Date(subscription.current_period_end) : null;
+
+  if (subscription.status === 'inactive' || subscription.status === 'canceled') return 'inactive';
+  if (trialEndsAt && trialEndsAt > now) return 'active';
+  if (periodEnd && periodEnd > now) return 'active';
+  if (subscription.status === 'active' && !trialEndsAt && !periodEnd) return 'active';
+  if ((periodEnd && periodEnd <= now) || (trialEndsAt && trialEndsAt <= now)) return 'expired';
+  return subscription.status || 'inactive';
+};
+
 const ensureResourcesTable = async () => {
   if (!dbPool) {
     return false;
@@ -659,7 +682,7 @@ export const getStudents = asyncHandler(async (req, res) => {
       .sort((a, b) => new Date(b.activated_at || 0) - new Date(a.activated_at || 0))[0];
     const totalPaid = totalPaidMap[student.id] || 0;
 
-    let subscriptionStatus = subscription?.status || 'inactive';
+    const subscriptionStatus = resolveSubscriptionStatus(subscription);
     
     // Apply status filter if provided
     if (status && status.trim() && subscriptionStatus !== status) {
@@ -683,6 +706,8 @@ export const getStudents = asyncHandler(async (req, res) => {
       ...student,
       email,
       subscription_status: subscriptionStatus,
+      trial_ends_at: subscription?.trial_ends_at || null,
+      current_period_end: subscription?.current_period_end || null,
       total_paid: totalPaid,
       course_subscription: latestEntitlement ? {
         course_id: latestEntitlement.course_id,
@@ -803,10 +828,10 @@ export const overrideSubscription = asyncHandler(async (req, res) => {
   // Validate input
   if (trialDays !== undefined && trialDays !== null) {
     // Granting trial - validate trialDays
-    if (![1, 7, 30].includes(trialDays)) {
+    if (![1, 3, 7, 14, 30].includes(trialDays)) {
       return res.status(400).json({
         success: false,
-        message: 'trialDays must be 1, 7, or 30',
+        message: 'trialDays must be 1, 3, 7, 14, or 30',
       });
     }
   } else if (typeof active !== 'boolean') {
@@ -819,7 +844,7 @@ export const overrideSubscription = asyncHandler(async (req, res) => {
   // Get current user role
   const { data: currentUser } = await supabaseAdmin
     .from('profiles')
-    .select('role, first_name, last_name, email')
+    .select('role, first_name, last_name')
     .eq('id', currentUserId)
     .single();
 
@@ -843,7 +868,7 @@ export const overrideSubscription = asyncHandler(async (req, res) => {
   // Get target user profile
   const { data: targetUser, error: targetError } = await supabaseAdmin
     .from('profiles')
-    .select('id, role, first_name, last_name, email')
+    .select('id, role, first_name, last_name')
     .eq('id', studentUserId)
     .single();
 
@@ -916,13 +941,32 @@ export const overrideSubscription = asyncHandler(async (req, res) => {
     subscriptionData.current_period_end = trialEndsAt || currentSubscription.current_period_end;
   }
 
-  const { data: updatedSubscription, error: updateError } = await supabaseAdmin
+  let updatedSubscription = null;
+  let updateError = null;
+
+  const firstUpsert = await supabaseAdmin
     .from('subscriptions')
     .upsert(subscriptionData, {
       onConflict: 'user_id',
     })
     .select()
     .single();
+
+  updatedSubscription = firstUpsert.data;
+  updateError = firstUpsert.error;
+
+  // Backward-compatible fallback for schemas that don't yet have trial_ends_at.
+  if (updateError && isMissingColumnError(updateError, 'trial_ends_at')) {
+    const fallbackPayload = { ...subscriptionData };
+    delete fallbackPayload.trial_ends_at;
+    const retryUpsert = await supabaseAdmin
+      .from('subscriptions')
+      .upsert(fallbackPayload, { onConflict: 'user_id' })
+      .select()
+      .single();
+    updatedSubscription = retryUpsert.data;
+    updateError = retryUpsert.error;
+  }
 
   if (updateError) {
     logger.error('Subscription override error:', updateError);
@@ -932,6 +976,39 @@ export const overrideSubscription = asyncHandler(async (req, res) => {
     });
   }
 
+  // Keep entitlement state aligned with manual subscription overrides so student access updates immediately.
+  if (active || trialEndsAt) {
+    const { data: activeCourses } = await supabaseAdmin
+      .from('courses')
+      .select('id')
+      .eq('is_active', true);
+
+    const entitlementExpiresAt =
+      trialEndsAt ||
+      subscriptionData.current_period_end ||
+      updatedSubscription?.current_period_end ||
+      null;
+
+    if (Array.isArray(activeCourses) && activeCourses.length > 0) {
+      const entitlementRows = activeCourses.map((course) => ({
+        user_id: studentUserId,
+        course_id: course.id,
+        active: true,
+        status: 'active',
+        activated_at: new Date().toISOString(),
+        expires_at: entitlementExpiresAt,
+      }));
+
+      const { error: entitlementUpsertError } = await supabaseAdmin
+        .from('entitlements')
+        .upsert(entitlementRows, { onConflict: 'user_id,course_id' });
+
+      if (entitlementUpsertError) {
+        logger.error('Entitlement upsert during override failed:', entitlementUpsertError);
+      }
+    }
+  }
+
   // Log to subscription_audit table
   try {
     await supabaseAdmin
@@ -939,9 +1016,9 @@ export const overrideSubscription = asyncHandler(async (req, res) => {
       .insert({
         actor_id: currentUserId,
         actor_role: actorRole,
-        actor_name: `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email,
+        actor_name: `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || 'Unknown',
         target_id: studentUserId,
-        target_name: `${targetUser.first_name || ''} ${targetUser.last_name || ''}`.trim() || targetUser.email,
+        target_name: `${targetUser.first_name || ''} ${targetUser.last_name || ''}`.trim() || 'Unknown',
         old_status: oldStatus,
         new_status: newStatus,
         reason: reason || null,

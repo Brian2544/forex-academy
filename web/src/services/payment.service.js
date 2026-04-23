@@ -1,10 +1,11 @@
 import api from './api';
 import { appEnv } from '../config/appEnv';
+import { getStoredReferralCode } from '../utils/referral';
 
 let cachedPublicKey = appEnv.paystackPublicKey || '';
 
 export const paymentService = {
-  initializeCoursePayment: async (courseId, courseLevel, courseTitle) => {
+  initializeCoursePayment: async (courseId, courseLevel, courseTitle, referralCode) => {
     if (!cachedPublicKey) {
       try {
         const keyResponse = await api.get('/payments/paystack/public-key');
@@ -22,6 +23,7 @@ export const paymentService = {
       courseId,
       courseLevel,
       courseTitle,
+      referralCode: referralCode || getStoredReferralCode(),
     });
     return response.data;
   },
@@ -41,8 +43,11 @@ export const paymentService = {
     return response.data;
   },
 
-  initiatePayment: async (planId) => {
-    const response = await api.post('/billing/checkout', { planId });
+  initiatePayment: async (planId, referralCode) => {
+    const response = await api.post('/billing/checkout', {
+      planId,
+      referralCode: referralCode || getStoredReferralCode(),
+    });
     return response.data;
   },
 

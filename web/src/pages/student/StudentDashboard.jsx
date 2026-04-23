@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -7,9 +7,24 @@ import toast from 'react-hot-toast';
 import { paymentService } from '../../services/payment.service';
 import { Lock, Unlock } from 'lucide-react';
 import CourseCard from '../../components/dashboard/CourseCard';
+import { useLearningProgress } from '../../hooks/useLearningProgress';
+import { certificatePlaceholder, learningCatalog } from '../../data/learningCatalog';
+import { getFormattedCoursePrice } from '../../utils/coursePricing';
 
 const StudentDashboard = () => {
   const { profile } = useAuth();
+  const { getCourseProgress } = useLearningProgress();
+  const roleLower = (profile?.role || '').toLowerCase();
+
+  if (roleLower === 'owner') {
+    return <Navigate to="/owner/dashboard" replace />;
+  }
+  if (['admin', 'super_admin', 'content_admin', 'support_admin', 'finance_admin'].includes(roleLower)) {
+    return <Navigate to="/admin/overview" replace />;
+  }
+  if (roleLower === 'instructor') {
+    return <Navigate to="/instructor/overview" replace />;
+  }
 
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['student-dashboard'],
@@ -46,17 +61,16 @@ const StudentDashboard = () => {
   const isPrivileged = ['admin', 'super_admin', 'owner', 'content_admin', 'support_admin', 'finance_admin']
     .includes(profile?.role?.toLowerCase());
   const hasCourseAccess = isPrivileged || access === 'active';
-
-  const formatPrice = (course) => {
-    if (!course?.price_ngn) {
-      return 'Pricing unavailable';
-    }
-    return new Intl.NumberFormat('en-KE', {
-      style: 'currency',
-      currency: 'KES',
-      maximumFractionDigits: 0,
-    }).format(Number(course.price_ngn));
+  const courseProgressByLevel = {
+    beginner: getCourseProgress('beginner', learningCatalog.beginner.modules.flatMap((module) => module.lessons).length),
+    intermediate: getCourseProgress('intermediate', learningCatalog.intermediate.modules.flatMap((module) => module.lessons).length),
+    advanced: getCourseProgress('advanced', learningCatalog.advanced.modules.flatMap((module) => module.lessons).length),
   };
+  const completedCoursesCount = Object.values(courseProgressByLevel).filter(
+    (progress) => progress.totalLessons > 0 && progress.completedCount === progress.totalLessons
+  ).length;
+
+  const formatPrice = (course) => getFormattedCoursePrice(course);
 
   const handleCoursePayment = async (courseId, courseLevel, courseTitle, courseObject) => {
     try {
@@ -290,6 +304,23 @@ const StudentDashboard = () => {
           </div>
         </div>
 
+        <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white rounded-lg border border-gray-200 p-5">
+            <p className="text-sm text-gray-500">Completed Courses</p>
+            <p className="text-2xl font-bold text-gray-900">{completedCoursesCount}/3</p>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-5">
+            <p className="text-sm text-gray-500">Overall Lesson Completion</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {Object.values(courseProgressByLevel).reduce((acc, item) => acc + item.completedCount, 0)}
+            </p>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-5">
+            <p className="text-sm text-gray-500">Certificate Status</p>
+            <p className="text-sm text-gray-700 mt-1">{certificatePlaceholder.note}</p>
+          </div>
+        </div>
+
         {/* Course Access */}
         <div className="mb-10">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Courses</h2>
@@ -301,6 +332,7 @@ const StudentDashboard = () => {
                   <CourseCard
                     key={course.id}
                     course={course}
+                    progress={courseProgressByLevel[course.level]}
                     isLocked={locked}
                     priceLabel={formatPrice(course)}
                     onPay={() => handleCoursePayment(course.id, course.level, course.title, course)}

@@ -16,12 +16,21 @@ import Courses from '../pages/Courses';
 import SignalsPage from '../pages/Signals';
 import LiveClasses from '../pages/LiveClasses';
 import Pricing from '../pages/Pricing';
+import About from '../pages/About';
+import Library from '../pages/Library';
+import FAQsPage from '../pages/FAQsPage';
+import Support from '../pages/Support';
+import CourseDetails from '../pages/CourseDetails';
+import Trainees from '../pages/Trainees';
+import TraineeSectionDetails from '../pages/TraineeSectionDetails';
 import LoginForm from '../components/auth/LoginForm';
 import RegisterForm from '../components/auth/RegisterForm';
+import AdminLogin from '../pages/admin/AdminLogin';
 import Onboarding from '../pages/Onboarding';
 import Terms from '../pages/legal/Terms';
 import Privacy from '../pages/legal/Privacy';
 import Disclaimer from '../pages/legal/Disclaimer';
+import EducationalPurpose from '../pages/legal/EducationalPurpose';
 
 // Admin Pages
 import AdminOverview from '../pages/admin/Overview';
@@ -74,14 +83,23 @@ const AppRoutes = () => {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/courses" element={<Courses />} />
+        <Route path="/courses/:levelSlug" element={<CourseDetails />} />
         <Route path="/signals" element={<SignalsPage />} />
         <Route path="/live-classes" element={<LiveClasses />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/library" element={<Library />} />
+        <Route path="/faqs" element={<FAQsPage />} />
+        <Route path="/support" element={<Support />} />
         <Route path="/login" element={<LoginForm />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/register" element={<RegisterForm />} />
+        <Route path="/trainees" element={<Trainees />} />
+        <Route path="/trainees/:slug" element={<TraineeSectionDetails />} />
         <Route path="/legal/terms" element={<Terms />} />
         <Route path="/legal/privacy" element={<Privacy />} />
         <Route path="/legal/disclaimer" element={<Disclaimer />} />
+        <Route path="/legal/educational-purpose" element={<EducationalPurpose />} />
       </Route>
 
       {/* Onboarding - Only accessible if authenticated but profile incomplete */}

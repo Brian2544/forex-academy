@@ -5,12 +5,38 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext(null);
+const ADMIN_ROLES = ['admin', 'super_admin', 'content_admin', 'support_admin', 'finance_admin'];
+
+const resolveDashboardPath = (role) => {
+  const roleLower = (role || '').toLowerCase();
+  if (roleLower === 'owner') return '/owner/dashboard';
+  if (ADMIN_ROLES.includes(roleLower)) return '/admin/overview';
+  if (roleLower === 'instructor') return '/instructor/overview';
+  return '/student/dashboard';
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const clearAuthState = useCallback(() => {
+    setUser(null);
+    setProfile(null);
+    localStorage.removeItem('token'); // Legacy cleanup
+    localStorage.removeItem('user'); // Legacy cleanup
+    sessionStorage.removeItem('paystack_return_to');
+  }, []);
+
+  const fetchTrustedProfile = useCallback(async () => {
+    const response = await api.get('/users/me');
+    const fetchedProfile = response?.data?.data?.profile || null;
+    if (!fetchedProfile || !fetchedProfile.role) {
+      throw new Error('Unable to resolve account profile. Please contact support.');
+    }
+    return fetchedProfile;
+  }, []);
 
   // Check authentication status on mount
   useEffect(() => {
@@ -20,24 +46,22 @@ export const AuthProvider = ({ children }) => {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
-          // Get profile from backend
+          // Single source of truth for role/profile: backend /users/me
           try {
-            const response = await api.get('/users/me');
-            if (response.data.success && response.data.data?.profile) {
-              setUser(session.user);
-              setProfile(response.data.data.profile);
-            }
+            const trustedProfile = await fetchTrustedProfile();
+            setUser(session.user);
+            setProfile(trustedProfile);
+            console.log('[AuthContext] Session restored with role:', trustedProfile.role);
           } catch (error) {
-            // Silent - clear session on profile fetch failure
+            console.error('[AuthContext] Session restore failed: profile unresolved', error);
             await supabase.auth.signOut();
-            setUser(null);
-            setProfile(null);
+            clearAuthState();
+            toast.error('Could not restore your account profile. Please sign in again.');
           }
         }
       } catch (error) {
         // Silent - not authenticated
-        setUser(null);
-        setProfile(null);
+        clearAuthState();
       } finally {
         setLoading(false);
       }
@@ -65,8 +89,7 @@ export const AuthProvider = ({ children }) => {
         // Profile will be set by login() after bootstrap completes - don't fetch here to avoid race condition
       } else if (event === 'SIGNED_OUT') {
         console.log('[AuthContext] User signed out');
-        setUser(null);
-        setProfile(null);
+        clearAuthState();
       } else if (event === 'TOKEN_REFRESHED' && session) {
         // On token refresh, update user but don't fetch profile (avoid race with bootstrap)
         setUser((prevUser) => {
@@ -83,7 +106,7 @@ export const AuthProvider = ({ children }) => {
         authStateChangeResult.data.subscription.unsubscribe();
       }
     };
-  }, []);
+  }, [clearAuthState, fetchTrustedProfile]);
 
   const login = async (email, password) => {
     console.log('[AuthContext] login() called');
@@ -128,8 +151,7 @@ export const AuthProvider = ({ children }) => {
       console.log('[AuthContext] Setting user state');
       setUser(signInData.user);
 
-      // ALWAYS call bootstrap first to ensure role is correct (server-authoritative)
-      // Then get /users/me, then route based on role
+      // Ensure server-side profile is bootstrapped, then fetch trusted profile from /users/me
       try {
         console.log('[AuthContext] Calling /auth/bootstrap to ensure role is correct');
         const bootstrapPromise = api.post('/auth/bootstrap', {
@@ -145,35 +167,14 @@ export const AuthProvider = ({ children }) => {
         
         console.log('[AuthContext] Bootstrap completed, response:', bootstrapResponse.data);
         
-        // Get the role from bootstrap response or fetch profile
-        let finalRole = bootstrapResponse.data?.role || bootstrapResponse.data?.data?.role;
-        let profile = bootstrapResponse.data?.profile || bootstrapResponse.data?.data;
-        
-        // If we don't have profile yet, fetch it
-        if (!profile) {
-          console.log('[AuthContext] Fetching profile from /users/me');
-          const mePromise = api.get('/users/me');
-          const meResponse = await Promise.race([
-            mePromise,
-            timeoutPromise
-          ]);
-          
-          profile = meResponse.data.data?.profile || meResponse.data.profile;
-          finalRole = profile?.role || meResponse.data.data?.role || finalRole || 'student';
-        }
-        
-        if (profile) {
-          console.log('[AuthContext] Profile found, role:', finalRole);
-          setProfile(profile);
-        } else {
-          // Fallback: set minimal profile
-          console.log('[AuthContext] No profile found, setting minimal profile');
-          setProfile({ 
-            id: signInData.user.id, 
-            role: finalRole || 'student',
-            email: signInData.user.email 
-          });
-        }
+        console.log('[AuthContext] Bootstrap completed:', bootstrapResponse.data?.success);
+        const trustedProfile = await fetchTrustedProfile();
+        setProfile(trustedProfile);
+        console.log('[AuthContext] Login profile resolved:', {
+          userId: trustedProfile.id,
+          email: trustedProfile.email,
+          role: trustedProfile.role,
+        });
         
         // If payment verification is pending, route back to status page
         const returnTo = sessionStorage.getItem('paystack_return_to');
@@ -183,33 +184,16 @@ export const AuthProvider = ({ children }) => {
           return { success: true };
         }
 
-        // Navigate based on role (use finalRole from bootstrap/me response)
-        const roleToUse = finalRole || profile?.role || 'student';
-        const roleLower = roleToUse.toLowerCase();
-        console.log('[AuthContext] Navigating based on role:', roleLower);
-        
-        if (roleLower === 'owner') {
-          console.log('[AuthContext] Navigating to owner/dashboard');
-          navigate('/owner/dashboard', { replace: true });
-        } else if (['admin', 'super_admin', 'content_admin', 'support_admin', 'finance_admin'].includes(roleLower)) {
-          console.log('[AuthContext] Navigating to admin/overview');
-          navigate('/admin/overview', { replace: true });
-        } else if (roleLower === 'instructor') {
-          console.log('[AuthContext] Navigating to instructor/overview');
-          navigate('/instructor/overview', { replace: true });
-        } else {
-          console.log('[AuthContext] Navigating to student/dashboard');
-          navigate('/student/dashboard', { replace: true });
-        }
+        const redirectPath = resolveDashboardPath(trustedProfile.role);
+        console.log('[AuthContext] Login redirect destination:', redirectPath);
+        navigate(redirectPath, { replace: true });
       } catch (authError) {
         console.error('[AuthContext] Bootstrap or profile fetch failed:', authError);
-        // Fallback: set minimal profile and navigate to student dashboard
-        setProfile({ 
-          id: signInData.user.id, 
-          role: 'student',
-          email: signInData.user.email 
-        });
-        navigate('/student/dashboard', { replace: true });
+        await supabase.auth.signOut();
+        clearAuthState();
+        const message = authError?.message || 'Could not resolve your account profile after login.';
+        toast.error(message);
+        return { success: false, error: message };
       }
 
       console.log('[AuthContext] Login successful');
@@ -351,18 +335,9 @@ export const AuthProvider = ({ children }) => {
           }
           
           // Profile is complete, route based on role
-          const role = profile?.role || 'student';
-          const roleLower = role.toLowerCase();
-          console.log('[AuthContext] Navigating based on role:', role);
-          if (roleLower === 'owner') {
-            navigate('/owner/dashboard', { replace: true });
-          } else if (['admin', 'super_admin', 'content_admin', 'support_admin', 'finance_admin'].includes(roleLower)) {
-            navigate('/admin/overview', { replace: true });
-          } else if (roleLower === 'instructor') {
-            navigate('/instructor/overview', { replace: true });
-          } else {
-            navigate('/student/dashboard', { replace: true });
-          }
+          const redirectPath = resolveDashboardPath(profile?.role);
+          console.log('[AuthContext] Registration redirect destination:', redirectPath);
+          navigate(redirectPath, { replace: true });
           
           return { 
             success: true, 
@@ -424,13 +399,8 @@ export const AuthProvider = ({ children }) => {
       // Clear Supabase session
       const { error: signOutError } = await supabase.auth.signOut();
       
-      // Clear all state
-      setUser(null);
-      setProfile(null);
-      
-      // Clear all storage
-      localStorage.clear();
-      sessionStorage.clear();
+      // Clear auth state/storage
+      clearAuthState();
       
       console.log('[AuthContext] Logout completed, state cleared');
       
@@ -440,10 +410,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('[AuthContext] Logout error:', error);
       // Even if there's an error, clear state
-      setUser(null);
-      setProfile(null);
-      localStorage.clear();
-      sessionStorage.clear();
+      clearAuthState();
       toast.success('Logged out successfully');
     }
     // Note: Navigation is handled by the component calling logout (AppNavbar)
@@ -451,18 +418,15 @@ export const AuthProvider = ({ children }) => {
 
   const refreshProfile = useCallback(async () => {
     try {
-      const response = await api.get('/users/me');
-      if (response.data.success && response.data.data?.profile) {
-        const profile = response.data.data.profile;
-        setProfile(profile);
-        return { success: true, profile };
-      }
-      return { success: false, error: 'Invalid response' };
+      const refreshedProfile = await fetchTrustedProfile();
+      setProfile(refreshedProfile);
+      console.log('[AuthContext] Profile refreshed:', { role: refreshedProfile.role });
+      return { success: true, profile: refreshedProfile };
     } catch (error) {
       console.error('[AuthContext] Error refreshing profile:', error);
       return { success: false, error: error.message };
     }
-  }, []);
+  }, [fetchTrustedProfile]);
 
   const value = {
     user,

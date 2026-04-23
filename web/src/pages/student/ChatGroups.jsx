@@ -41,6 +41,18 @@ const ChatGroups = () => {
           </p>
         </div>
 
+        <div className="bg-[#0B1220] rounded-lg p-5 border border-[rgba(255,255,255,0.08)]">
+          <h3 className="text-lg font-semibold text-white mb-2">Q&A Foundation</h3>
+          <p className="text-gray-300 text-sm mb-3">
+            Use forum groups for strategy questions, risk-management discussions, and lesson clarification.
+          </p>
+          <ul className="text-gray-400 text-sm space-y-1">
+            <li>- Tag discussions by topic (beginner, technical analysis, psychology)</li>
+            <li>- Ask precise questions with chart context</li>
+            <li>- Educational discussions only, no guaranteed-profit claims</li>
+          </ul>
+        </div>
+
         {groupsList.length > 0 ? (
           <div className="grid md:grid-cols-2 gap-6">
             {groupsList.map((group) => (
